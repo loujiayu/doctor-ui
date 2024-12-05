@@ -12,4 +12,4 @@ export interface MedResponse {
   message: string;
 }
 
-export type Role = "assistant" | "user";
+export type Role = "assistant" | "user" | "system";

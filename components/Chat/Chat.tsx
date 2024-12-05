@@ -4,21 +4,24 @@ import { ChatInput } from "./ChatInput";
 import { ChatLoader } from "./ChatLoader";
 import { ChatMessage } from "./ChatMessage";
 import { ResetChat } from "./ResetChat";
+import EditPopup from './EditPopup';
 
 interface Props {
   messages: Message[];
   loading: boolean;
   onSend: (message: Message) => void;
   onReset: () => void;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  setSystem: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export const Chat: FC<Props> = ({ messages, loading, onSend, onReset }) => {
+export const Chat: FC<Props> = ({ messages, loading, onSend, onReset, setSystem }) => {
   return (
     <>
-      <div className="flex flex-row justify-between items-center mb-4 sm:mb-8">
+      {/* <div className="flex flex-row justify-between items-center mb-4 sm:mb-8">
         <ResetChat onReset={onReset} />
-      </div>
-
+      </div> */}
+      <EditPopup onSend={onSend} setSystem={setSystem} />
       <div className="flex flex-col rounded-lg px-2 sm:p-4 sm:border border-neutral-300">
         {messages.map((message, index) => (
           <div

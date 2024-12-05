@@ -5,10 +5,21 @@ import { Message, MedResponse } from "@/types";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 
+
 export default function Home() {
+  return <div>
+    <ChatWrapper />
+    <ChatWrapper />
+    <ChatWrapper />
+    <ChatWrapper />
+  </div>
+}
+
+function ChatWrapper() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [threadId, setThreadId] = useState<string>();
+  const [system, setSystem] = useState<string>("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -25,19 +36,26 @@ export default function Home() {
     const params = new URLSearchParams({
       prompt: message.content,
     });
-
+    
     if (threadId) {
       params.append('thread_id', threadId!);
     }
-    const response = await fetch(`https://vikiai.azurewebsites.net/api/medai?${params}`, {
-      method: "GET",
+
+    const systemMessage: Message = { role: "system", content: system! };
+
+    const payloadMessages = updatedMessages.slice()
+    payloadMessages.unshift(systemMessage);
+    const response = await fetch(`http://localhost:7071/api/chat?${params}`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json', // Make sure to set the content type
+      },
+      body: JSON.stringify({
+        messages: payloadMessages
+      }),
     });
 
-    // const response = await fetch(`http://localhost:7071/api/medai?${params}`, {
-    //   method: "GET",
-    // });
-
-    if (!response.ok) {
+    if (response.status != 200) {
       setLoading(false);
       throw new Error(response.statusText);
     }
@@ -103,15 +121,6 @@ export default function Home() {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    setMessages([
-      {
-        role: "assistant",
-        content: `Hi there! I'm an AI assistant. I can generate health-related prompts based on synthetic and device data, providing real-time feedback and visual metrics.`
-      }
-    ]);
-  }, []);
-
   return (
     <>
       <Head>
@@ -138,6 +147,8 @@ export default function Home() {
             <Chat
               messages={messages}
               loading={loading}
+              setMessages={setMessages}
+              setSystem={setSystem}
               onSend={handleSend}
               onReset={handleReset}
             />
