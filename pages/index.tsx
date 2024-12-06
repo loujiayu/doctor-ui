@@ -60,7 +60,7 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = async (message: Message, cleanup: boolean = false) => {
+  const handleSend = async (message: Message, cleanup: boolean = false, systemString: string = "") => {
     let updatedMessages = [...messages, message];
     if (cleanup) {
       updatedMessages = [message];
@@ -77,7 +77,7 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
       params.append('thread_id', threadId!);
     }
 
-    const systemMessage: Message = { role: "system", content: system! };
+    const systemMessage: Message = { role: "system", content: systemString! };
     const payloadMessages = updatedMessages.slice();
     payloadMessages.unshift(systemMessage);
     const response = await fetch(`${process.env.API_URL}/chat?${params}`, {
@@ -129,17 +129,18 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
       const aiPrompt = JSON.parse(data[index]) as Prompt;
       setInitPrompt(aiPrompt.prompt)
       setSystem(aiPrompt.system);
-      return aiPrompt.prompt;
+      return aiPrompt;
 
     } catch (error) {
       console.log(error);
       console.log(index, "prompt parsing error");
       setInitPrompt("undefined")
       setSystem("undefined");
-      return "";
+      return {
+        prompt: "",
+        system: ""
+      };
     }
-
-    
   }
 
   const handleReset = () => {
@@ -158,7 +159,9 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
 
       fetchInitPrompt().then(prompt => {
 
-        // handleSend({role: 'user', content: prompt});
+        if (prompt?.system != null) {
+          handleSend({role: 'user', content: prompt?.prompt!}, true, prompt?.system);
+        }
       })
     }
   }, []);
@@ -170,7 +173,7 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
         <div className="flex">
           <div>{name}</div>
 
-          <div className="flex-1 overflow-auto sm:px-10 pb-4 sm:pb-10 max-h-[500px]">
+          <div className="flex-1 overflow-auto sm:px-10 pb-4 sm:pb-10 max-h-[1000px]">
             <div className="max-w-[800px] mx-auto mt-4 sm:mt-12">
               <Chat
                 messages={messages}

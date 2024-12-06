@@ -3,7 +3,7 @@ import { Message } from "@/types";
 
 // App Component
 interface AppProps {
-  onSend: (message: Message, cleanup: boolean) => void;
+  onSend: (message: Message, cleanup: boolean, system: string) => void;
   initPrompt: string;
   system: string;
   setSystem: React.Dispatch<React.SetStateAction<string>>;
@@ -29,7 +29,7 @@ const App: React.FC<AppProps> = ({ onSend, setSystem, index, initPrompt, system 
     setSystem(newMessages.find(message => message.role == "system")?.content!)
     
     const userMessage = newMessages.find(message => message.role == "user");
-    onSend(userMessage!, cleanup);
+    onSend(userMessage!, cleanup, newMessages.find(message => message.role == "system")?.content!);
 
     fetch(`${process.env.API_URL}/editprompt?editprompt`, {
       method: "POST",
