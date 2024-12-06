@@ -1,7 +1,7 @@
 import { Chat } from "@/components/Chat/Chat";
 import { Footer } from "@/components/Layout/Footer";
 import { Navbar } from "@/components/Layout/Navbar";
-import { Message, MedResponse } from "@/types";
+import { Message, MedResponse, Prompt } from "@/types";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 
@@ -14,11 +14,11 @@ const HomeStyle: React.CSSProperties = {
 export default function Home() {
   return <div style={HomeStyle}>
     <ChatWrapper name="Symptoms" index="1" />
-    {/* <ChatWrapper name="Vital Signs"/>
-    <ChatWrapper name="Age & Sex" />
-    <ChatWrapper name="Lab Results"/>
-    <ChatWrapper name="Medication List"/>
-    <ChatWrapper name="Past Medical History (PMH)"/> */}
+    <ChatWrapper name="Vital Signs" index="2"/>
+    <ChatWrapper name="Age & Sex" index="3"/>
+    <ChatWrapper name="Lab Results" index="4"/>
+    <ChatWrapper name="Medication List" index="5"/>
+    <ChatWrapper name="Past Medical History (PMH)" index="6"/>
   </div>
 }
 
@@ -77,15 +77,16 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
       params.append('thread_id', threadId!);
     }
 
-    // const systemMessage: Message = { role: "system", content: system! };
-    // payloadMessages.unshift(systemMessage);
+    const systemMessage: Message = { role: "system", content: system! };
+    const payloadMessages = updatedMessages.slice();
+    payloadMessages.unshift(systemMessage);
     const response = await fetch(`${process.env.API_URL}/chat?${params}`, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json', // Make sure to set the content type
       },
       body: JSON.stringify({
-        messages: updatedMessages
+        messages: payloadMessages
       }),
     });
 
@@ -114,7 +115,6 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
   };
 
   const fetchInitPrompt = async () => {
-    setInitPrompt("jfal")
     const response = await fetch(`${process.env.API_URL}/fetchprompt`);
     if (!response.body) {
       return;
@@ -124,7 +124,22 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
     if (!data) {
       return;
     }
-    return data[index];
+
+    try {
+      const aiPrompt = JSON.parse(data[index]) as Prompt;
+      setInitPrompt(aiPrompt.prompt)
+      setSystem(aiPrompt.system);
+      return aiPrompt.prompt;
+
+    } catch (error) {
+      console.log(error);
+      console.log(index, "prompt parsing error");
+      setInitPrompt("undefined")
+      setSystem("undefined");
+      return "";
+    }
+
+    
   }
 
   const handleReset = () => {
@@ -143,7 +158,7 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
 
       fetchInitPrompt().then(prompt => {
 
-        handleSend({role: 'user', content: prompt});
+        // handleSend({role: 'user', content: prompt});
       })
     }
   }, []);
@@ -151,7 +166,7 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
 
   return (
     <div className="flex justify-center"> {/* Centering the ChatWrapper */}
-      <div className="w-[800px] h-[600px]"> {/* Fixed width set to 400px */}
+      <div className="w-[800px] h-[1200px]"> {/* Fixed width set to 400px */}
         <div className="flex">
           <div>{name}</div>
 
@@ -160,6 +175,8 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
               <Chat
                 messages={messages}
                 loading={loading}
+                initPrompt={initPrompt}
+                system={system}
                 setMessages={setMessages}
                 index={index}
                 setSystem={setSystem}

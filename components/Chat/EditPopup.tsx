@@ -4,11 +4,13 @@ import { Message } from "@/types";
 // App Component
 interface AppProps {
   onSend: (message: Message, cleanup: boolean) => void;
+  initPrompt: string;
+  system: string;
   setSystem: React.Dispatch<React.SetStateAction<string>>;
   index: string;
 }
 
-const App: React.FC<AppProps> = ({ onSend, setSystem, index }) => {
+const App: React.FC<AppProps> = ({ onSend, setSystem, index, initPrompt, system }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
 
@@ -23,7 +25,8 @@ const App: React.FC<AppProps> = ({ onSend, setSystem, index }) => {
   const handleSend = (newMessages: Message[], cleanup: boolean) => {
     setMessages((prevMessages) => [...prevMessages, ...newMessages]);
     // Passing the messages to the onSend function passed from the parent component
-    // setSystem(newMessages.find(message => message.role == "system")?.content!)
+    const systemMessage = newMessages.find(message => message.role == "system");
+    setSystem(newMessages.find(message => message.role == "system")?.content!)
     
     const userMessage = newMessages.find(message => message.role == "user");
     onSend(userMessage!, cleanup);
@@ -35,7 +38,10 @@ const App: React.FC<AppProps> = ({ onSend, setSystem, index }) => {
       },
       body: JSON.stringify({
         file_name: index,
-        new_content: userMessage?.content
+        new_content: JSON.stringify({
+          system: systemMessage?.content,
+          prompt: userMessage?.content
+        })
       }),
     })
   };
@@ -43,14 +49,18 @@ const App: React.FC<AppProps> = ({ onSend, setSystem, index }) => {
   return (
     <div>
       <button onClick={openPopup} style={editButtonStyle}>Edit</button>
-
-      <Popup
-        isOpen={isPopupOpen}
-        onClose={closePopup}
-        onSend={handleSend} // Pass handleSend to Popup
-        system="Initial system message"
-        user="Initial user message"
-      />
+      {
+        system && 
+        initPrompt &&
+        <Popup
+          isOpen={isPopupOpen}
+          onClose={closePopup}
+          onSend={handleSend} // Pass handleSend to Popup
+          system={system}
+          user={initPrompt}
+        />
+      }
+      
 
     </div>
   );
@@ -96,17 +106,17 @@ const Popup: React.FC<PopupProps> = ({ isOpen, onClose, system, user, onSend }) 
     <div style={overlayStyle} onClick={handleClickOutside}>
       <div style={popupStyle}>
         <h2>Prompt Edit</h2>
-        {/* <div>
-          <label>System:</label>
+        <div>
+          <label>AI role:</label>
           <textarea
             value={systemText}
             onChange={(e) => setSystemText(e.target.value)}
             placeholder="Enter text for System"
             style={textareaStyle}
           />
-        </div> */}
+        </div>
         <div>
-          <label>User:</label>
+          <label>Prompt:</label>
           <textarea
             value={userText}
             onChange={(e) => setUserText(e.target.value)}
@@ -116,7 +126,7 @@ const Popup: React.FC<PopupProps> = ({ isOpen, onClose, system, user, onSend }) 
         </div>
         <div>
           <button onClick={handleSave}>Save</button>
-          <button onClick={onClose}>Close</button>
+          {/* <button onClick={onClose}>Close</button> */}
         </div>
       </div>
     </div>

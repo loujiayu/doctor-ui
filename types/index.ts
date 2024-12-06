@@ -7,6 +7,11 @@ export interface Message {
   content: string;
 }
 
+export interface Prompt {
+  system: string;
+  prompt: string;
+}
+
 export interface MedResponse {
   thread_id: string;
   message: string;

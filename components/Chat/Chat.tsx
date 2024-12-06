@@ -9,6 +9,8 @@ import EditPopup from './EditPopup';
 interface Props {
   messages: Message[];
   index: string;
+  initPrompt: string;
+  system: string;
   loading: boolean;
   onSend: (message: Message) => void;
   onReset: () => void;
@@ -16,13 +18,13 @@ interface Props {
   setSystem: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export const Chat: FC<Props> = ({ messages, loading, onSend, onReset, setSystem, index }) => {
+export const Chat: FC<Props> = ({ messages, loading, onSend, onReset, setSystem, index, initPrompt, system }) => {
   return (
     <>
       {/* <div className="flex flex-row justify-between items-center mb-4 sm:mb-8">
         <ResetChat onReset={onReset} />
       </div> */}
-      <EditPopup index={index} onSend={onSend} setSystem={setSystem} />
+      <EditPopup index={index} onSend={onSend} setSystem={setSystem} initPrompt={initPrompt} system={system} />
       <div className="flex flex-col rounded-lg px-2 sm:p-4 sm:border border-neutral-300">
         {messages.map((message, index) => (
           <div
