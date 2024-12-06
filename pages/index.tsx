@@ -5,30 +5,66 @@ import { Message, MedResponse } from "@/types";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 
+const HomeStyle: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  padding: 30
+};
 
 export default function Home() {
-  return <div>
-    <ChatWrapper />
-    <ChatWrapper />
-    <ChatWrapper />
-    <ChatWrapper />
+  return <div style={HomeStyle}>
+    <ChatWrapper name="Symptoms" index="1" />
+    {/* <ChatWrapper name="Vital Signs"/>
+    <ChatWrapper name="Age & Sex" />
+    <ChatWrapper name="Lab Results"/>
+    <ChatWrapper name="Medication List"/>
+    <ChatWrapper name="Past Medical History (PMH)"/> */}
   </div>
 }
 
-function ChatWrapper() {
+interface ChatWrapperProps {
+  name: string;
+  index: string;
+}
+
+async function convertDataToResponse(data: ReadableStream<Uint8Array>) {
+  const reader = data.getReader();
+  const decoder = new TextDecoder();
+  let done = false;
+  let accumulatedText = "";
+
+  // Read the entire stream and accumulate the text
+  while (!done) {
+    const { value, done: doneReading } = await reader.read();
+    done = doneReading;
+    accumulatedText += decoder.decode(value, { stream: true });
+  }
+
+  try {
+    // Parse the accumulated text to JSON and return it as a MedResponse object
+    const response = JSON.parse(accumulatedText) as MedResponse;
+    return response;
+  } catch (error) {
+    console.error("Failed to parse response:", error);
+    return null; // or you can throw an error if needed
+  }
+}
+
+const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [threadId, setThreadId] = useState<string>();
   const [system, setSystem] = useState<string>("");
+  const [initPrompt, setInitPrompt] = useState<string>("");
+  const hasRun = useRef(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleSend = async (message: Message) => {
-    const updatedMessages = [...messages, message];
+  const handleSend = async (message: Message, cleanup: boolean = false) => {
+    let updatedMessages = [...messages, message];
+    if (cleanup) {
+      updatedMessages = [message];
+    }
 
     setMessages(updatedMessages);
     setLoading(true);
@@ -41,17 +77,15 @@ function ChatWrapper() {
       params.append('thread_id', threadId!);
     }
 
-    const systemMessage: Message = { role: "system", content: system! };
-
-    const payloadMessages = updatedMessages.slice()
-    payloadMessages.unshift(systemMessage);
-    const response = await fetch(`http://localhost:7071/api/chat?${params}`, {
+    // const systemMessage: Message = { role: "system", content: system! };
+    // payloadMessages.unshift(systemMessage);
+    const response = await fetch(`${process.env.API_URL}/chat?${params}`, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json', // Make sure to set the content type
       },
       body: JSON.stringify({
-        messages: payloadMessages
+        messages: updatedMessages
       }),
     });
 
@@ -68,45 +102,30 @@ function ChatWrapper() {
 
     setLoading(false);
 
-    const reader = data.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
-    let isFirst = true;
+    const chatResponse: any = await convertDataToResponse(data);
 
-    while (!done) {
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      const chunkValue = decoder.decode(value);
-      let response: MedResponse;
-
-      try {
-        response = JSON.parse(chunkValue) as MedResponse;
-        setThreadId(response.thread_id);
-      } catch (error) {
-        return;
+    setMessages((messages) => [
+      ...messages,
+      {
+        role: "assistant",
+        content: chatResponse.response
       }
-
-      if (isFirst) {
-        isFirst = false;
-        setMessages((messages) => [
-          ...messages,
-          {
-            role: "assistant",
-            content: response.message
-          }
-        ]);
-      } else {
-        setMessages((messages) => {
-          const lastMessage = messages[messages.length - 1];
-          const updatedMessage = {
-            ...lastMessage,
-            content: lastMessage.content + response.message
-          };
-          return [...messages.slice(0, -1), updatedMessage];
-        });
-      }
-    }
+    ]);
   };
+
+  const fetchInitPrompt = async () => {
+    setInitPrompt("jfal")
+    const response = await fetch(`${process.env.API_URL}/fetchprompt`);
+    if (!response.body) {
+      return;
+    }
+
+    const data: any = await convertDataToResponse(response.body)
+    if (!data) {
+      return;
+    }
+    return data[index];
+  }
 
   const handleReset = () => {
     setMessages([
@@ -118,45 +137,41 @@ function ChatWrapper() {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (!hasRun.current) {
+      console.log("This effect runs only once, even in StrictMode.");
+      hasRun.current = true;
+
+      fetchInitPrompt().then(prompt => {
+
+        handleSend({role: 'user', content: prompt});
+      })
+    }
+  }, []);
+
 
   return (
-    <>
-      <Head>
-        <title>Customer UI</title>
-        <meta
-          name="description"
-          content="A simple chatbot starter kit for OpenAI's chat model using Next.js, TypeScript, and Tailwind CSS."
-        />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1"
-        />
-        <link
-          rel="icon"
-          href="/favicon.ico"
-        />
-      </Head>
+    <div className="flex justify-center"> {/* Centering the ChatWrapper */}
+      <div className="w-[800px] h-[600px]"> {/* Fixed width set to 400px */}
+        <div className="flex">
+          <div>{name}</div>
 
-      <div className="flex flex-col h-screen">
-        <Navbar />
-
-        <div className="flex-1 overflow-auto sm:px-10 pb-4 sm:pb-10">
-          <div className="max-w-[800px] mx-auto mt-4 sm:mt-12">
-            <Chat
-              messages={messages}
-              loading={loading}
-              setMessages={setMessages}
-              setSystem={setSystem}
-              onSend={handleSend}
-              onReset={handleReset}
-            />
-            <div ref={messagesEndRef} />
+          <div className="flex-1 overflow-auto sm:px-10 pb-4 sm:pb-10 max-h-[500px]">
+            <div className="max-w-[800px] mx-auto mt-4 sm:mt-12">
+              <Chat
+                messages={messages}
+                loading={loading}
+                setMessages={setMessages}
+                index={index}
+                setSystem={setSystem}
+                onSend={handleSend}
+                onReset={handleReset}
+              />
+              <div ref={messagesEndRef} />
+            </div>
           </div>
+          <Footer />
         </div>
-        <Footer />
       </div>
-    </>
+    </div>
   );
 }

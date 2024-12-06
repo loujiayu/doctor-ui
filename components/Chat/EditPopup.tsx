@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Message } from "@/types";
 
-
 // App Component
 interface AppProps {
-  onSend: (message: Message) => void;
+  onSend: (message: Message, cleanup: boolean) => void;
   setSystem: React.Dispatch<React.SetStateAction<string>>;
+  index: string;
 }
 
-const App: React.FC<AppProps> = ({ onSend, setSystem }) => {
+const App: React.FC<AppProps> = ({ onSend, setSystem, index }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
 
@@ -20,11 +20,24 @@ const App: React.FC<AppProps> = ({ onSend, setSystem }) => {
     setIsPopupOpen(false);
   };
 
-  const handleSend = (newMessages: Message[]) => {
+  const handleSend = (newMessages: Message[], cleanup: boolean) => {
     setMessages((prevMessages) => [...prevMessages, ...newMessages]);
     // Passing the messages to the onSend function passed from the parent component
-    setSystem(newMessages.find(message => message.role == "system")?.content!)
-    onSend(newMessages.find(message => message.role == "user")!);
+    // setSystem(newMessages.find(message => message.role == "system")?.content!)
+    
+    const userMessage = newMessages.find(message => message.role == "user");
+    onSend(userMessage!, cleanup);
+
+    fetch(`${process.env.API_URL}/editprompt?editprompt`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json', // Make sure to set the content type
+      },
+      body: JSON.stringify({
+        file_name: index,
+        new_content: userMessage?.content
+      }),
+    })
   };
 
   return (
@@ -49,7 +62,7 @@ interface PopupProps {
   onClose: () => void;
   system: string;
   user: string;
-  onSend: (messages: Message[]) => void;
+  onSend: (messages: Message[], cleanup: boolean) => void;
 }
 
 const Popup: React.FC<PopupProps> = ({ isOpen, onClose, system, user, onSend }) => {
@@ -64,7 +77,7 @@ const Popup: React.FC<PopupProps> = ({ isOpen, onClose, system, user, onSend }) 
     ];
 
     // Send the messages to the parent component
-    onSend(newMessages);
+    onSend(newMessages, true);
 
     // Close the popup after saving
     onClose();
@@ -83,7 +96,7 @@ const Popup: React.FC<PopupProps> = ({ isOpen, onClose, system, user, onSend }) 
     <div style={overlayStyle} onClick={handleClickOutside}>
       <div style={popupStyle}>
         <h2>Prompt Edit</h2>
-        <div>
+        {/* <div>
           <label>System:</label>
           <textarea
             value={systemText}
@@ -91,7 +104,7 @@ const Popup: React.FC<PopupProps> = ({ isOpen, onClose, system, user, onSend }) 
             placeholder="Enter text for System"
             style={textareaStyle}
           />
-        </div>
+        </div> */}
         <div>
           <label>User:</label>
           <textarea
