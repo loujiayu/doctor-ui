@@ -1,8 +1,8 @@
 import { Chat } from "@/components/Chat/Chat";
+import HealthRiskCalculator from "@/components/Chat/Risk";
 import { Footer } from "@/components/Layout/Footer";
-import { Navbar } from "@/components/Layout/Navbar";
+import SocialLogin from "@/components/Layout/SocialLogin";
 import { Message, MedResponse, Prompt } from "@/types";
-import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 
 const HomeStyle: React.CSSProperties = {
@@ -12,7 +12,16 @@ const HomeStyle: React.CSSProperties = {
 };
 
 export default function Home() {
+  const [login, setLogin] = useState<boolean>(true);
+
+  if (login) {
+    return <div onClick={() => setLogin(false)}>
+      <SocialLogin />
+    </div>
+  }
+
   return <div style={HomeStyle}>
+    <HealthRiskCalculator />
     <ChatWrapper name="Symptoms" index="1" />
     <ChatWrapper name="Vital Signs" index="2"/>
     <ChatWrapper name="Age & Sex" index="3"/>
@@ -168,7 +177,7 @@ const ChatWrapper: React.FC<ChatWrapperProps> = ({ name, index }) => {
 
 
   return (
-    <div className="flex justify-center"> {/* Centering the ChatWrapper */}
+    <div className="flex justify-center text-xl"> {/* Centering the ChatWrapper */}
       <div className="w-[800px] h-[1200px]"> {/* Fixed width set to 400px */}
         <div className="flex">
           <div>{name}</div>
