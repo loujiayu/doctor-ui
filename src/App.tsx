@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ThumbsUp, ThumbsDown, AlertCircle, MessageSquare, Activity, Brain, ChevronDown, FileText, ClipboardList, Receipt, FileCheck, Pill, Syringe, Timer, Stethoscope, HeartPulse, ArrowRight, GitBranch } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, AlertCircle, MessageSquare, Activity, Brain, ChevronDown, Pill, Syringe, Timer, Stethoscope, HeartPulse, ArrowRight, GitBranch } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 function App() {
   const [isOpen, setIsOpen] = useState(true);
-  const [promptText, setPromptText] = useState('Analyze patient symptoms and vital signs for potential diagnosis');
   const { toast } = useToast();
   
   const handleVote = (type: 'up' | 'down' | 'more') => {
