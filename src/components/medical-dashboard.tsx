@@ -1,20 +1,77 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ThumbsUp, ThumbsDown, AlertCircle, MessageSquare, Activity, Brain, ChevronDown, FileText, ClipboardList, Receipt, FileCheck, Pill, Syringe, Timer, Stethoscope, HeartPulse, ArrowRight, GitBranch } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, AlertCircle, MessageSquare, Activity, Brain, ChevronDown, Loader2, RefreshCw, Save, FileCheck, Pill, Syringe, Timer, Stethoscope, HeartPulse, ArrowRight, GitBranch } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+
+// TODO: Replace with actual API call
+const mockSoapNote = `
+# Patient Visit Note
+
+## Subjective
+- Chief Complaint: Persistent headaches for past 2 weeks
+- Location: Bilateral temporal region
+- Severity: 7/10 on pain scale
+- Quality: Throbbing, pressure-like
+- Timing: Worse in mornings
+- Associated Symptoms: 
+  - Light sensitivity
+  - Mild nausea
+  - Disrupted sleep patterns
+
+## Objective
+- Vital Signs:
+  - BP: 128/82
+  - HR: 78
+  - Temp: 98.6°F
+  - RR: 16
+- Physical Examination:
+  - Alert and oriented x3
+  - No focal neurological deficits
+  - Mild tenderness to palpation in temporal regions
+  - Normal pupillary response
+  - No meningeal signs
+
+## Assessment
+1. Chronic Tension Headache (Primary)
+2. Sleep Disorder - Unspecified
+3. Possible Migraine Component
+
+## Plan
+1. Medications:
+   - Start Amitriptyline 10mg qhs
+   - Continue PRN NSAIDs
+2. Diagnostics:
+   - Sleep study referral
+   - Headache diary
+3. Follow-up:
+   - Return in 2 weeks
+   - Sooner if symptoms worsen
+4. Patient Education:
+   - Sleep hygiene discussed
+   - Stress management techniques
+   - Dietary trigger avoidance
+`;
+
 
 export function MedicalDashboard() {
   const [isOpen, setIsOpen] = useState(true);
   const [promptText, setPromptText] = useState('Analyze patient symptoms and vital signs for potential diagnosis');
+  const [soapNote, setSoapNote] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
   const { toast } = useToast();
-  
+
   const handleVote = (type: 'up' | 'down' | 'more') => {
     const messages = {
       up: 'Analysis approved and sent to patient',
@@ -26,6 +83,91 @@ export function MedicalDashboard() {
       description: messages[type],
       duration: 3000
     });
+  };
+
+  const fetchSoapNote = async () => {
+    try {
+      // Simulate API call with delay
+      // await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await fetch('https://doctormt-85352025976.us-central1.run.app');
+      const data = await response.text();
+      return JSON.parse(data).message;
+    } catch (error) {
+      console.error('Error fetching SOAP note:', error);
+      return mockSoapNote;
+    }
+  };
+
+  const loadSoapNote = async () => {
+    setIsLoading(true);
+    const note = await fetchSoapNote();
+    setSoapNote(note);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadSoapNote();
+  }, []);
+
+  // Fetch default prompt
+  const fetchDefaultPrompt = async () => {
+    setIsLoadingPrompt(true);
+    try {
+      // TODO: Replace with actual API endpoint
+      const response = await fetch('https://prompts-85352025976.us-central1.run.app?key=soapnote');
+      if (!response.ok) throw new Error('Failed to fetch prompt');
+      const data = await response.text();
+      setPromptText(JSON.parse(data).content);
+    } catch (error) {
+      console.error('Error fetching default prompt:', error);
+      setPromptText("");
+      toast({
+        title: "Warning",
+        description: "Using fallback prompt configuration. Could not load from server.",
+        variant: "destructive",
+        duration: 5000
+      });
+    } finally {
+      setIsLoadingPrompt(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDefaultPrompt();
+  }, []);
+
+  const handleSavePrompt = async () => {
+    setIsSaving(true);
+    try {
+      // Simulate API call
+      const response = await fetch('https://prompts-85352025976.us-central1.run.app?key=soapnote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: promptText
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to save prompt');
+      
+      toast({
+        title: "Prompt Saved",
+        description: "Your prompt configuration has been updated successfully.",
+        duration: 3000
+      });
+      loadSoapNote()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save prompt configuration.",
+        variant: "destructive",
+        duration: 3000
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -95,6 +237,25 @@ export function MedicalDashboard() {
                   <TabsTrigger value="insurance">Insurance Notes</TabsTrigger>
                   <TabsTrigger value="prompt">Prompt Config</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="soap" className="h-[calc(100%-3rem)]">
+                  <ScrollArea className="h-full rounded-md border p-4">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="flex flex-col items-center gap-2">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          <p className="text-sm text-muted-foreground">Loading SOAP note...</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <article className="prose prose-sm max-w-none dark:prose-invert">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {soapNote || ''}
+                        </ReactMarkdown>
+                      </article>
+                    )}
+                  </ScrollArea>
+                </TabsContent>
                 
                 <TabsContent value="algorithm" className="h-[calc(100%-3rem)]">
                   <ScrollArea className="h-full rounded-md border p-4">
@@ -231,6 +392,42 @@ export function MedicalDashboard() {
                       </div>
                     </div>
                   </ScrollArea>
+                </TabsContent>
+
+                <TabsContent value="prompt" className="h-[calc(100%-3rem)]">
+                  {isLoadingPrompt ? (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-sm text-muted-foreground">Loading prompt configuration...</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Prompt Editor</h3>
+                        <Button
+                          onClick={handleSavePrompt}
+                          size="sm"
+                          className="flex items-center gap-2"
+                          disabled={isSaving}
+                        >
+                          {isSaving ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                          Save Changes
+                        </Button>
+                      </div>
+                      <Textarea
+                        value={promptText}
+                        onChange={(e) => setPromptText(e.target.value)}
+                        className="h-[calc(100vh-22rem)] font-mono text-sm resize-none"
+                        placeholder="Enter your prompt configuration here..."
+                      />
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>
