@@ -1,4 +1,9 @@
 import { create } from 'zustand';
+import { parseISO } from 'date-fns';
+
+// Sort options - remove 'name' from the type
+export type SortField = 'age' | 'lastVisit' | 'riskScore';
+export type SortOrder = 'asc' | 'desc';
 
 // Patient info interface
 export interface Patient {
@@ -129,12 +134,15 @@ interface PatientStore {
   patients: Record<string, Patient>;
   searchTerm: string;
   isLoading: boolean;
+  sortField: SortField;
+  sortOrder: SortOrder;
   
   // Actions
   selectPatient: (patientId: string) => void;
   clearSelectedPatient: () => void;
   setSearchTerm: (term: string) => void;
   setLoading: (isLoading: boolean) => void;
+  setSorting: (field: SortField, order?: SortOrder) => void;
   
   // Derived state
   filteredPatients: () => Patient[];
@@ -148,25 +156,69 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
   patients: patientData,
   searchTerm: '',
   isLoading: false,
+  sortField: 'lastVisit',
+  sortOrder: 'desc',
   
   // Actions
   selectPatient: (patientId) => set({ selectedPatientId: patientId }),
   clearSelectedPatient: () => set({ selectedPatientId: null }),
   setSearchTerm: (term) => set({ searchTerm: term }),
   setLoading: (isLoading) => set({ isLoading }),
+  setSorting: (field, order) => {
+    // If clicking on the same field, toggle order
+    if (field === get().sortField && !order) {
+      set({ 
+        sortField: field, 
+        sortOrder: get().sortOrder === 'asc' ? 'desc' : 'asc' 
+      });
+    } else {
+      // Otherwise, set the new field and order (or default to asc)
+      set({ 
+        sortField: field, 
+        sortOrder: order || 'asc' 
+      });
+    }
+  },
   
   // Derived state (getters)
   filteredPatients: () => {
-    const { patients, searchTerm } = get();
+    const { patients, searchTerm, sortField, sortOrder } = get();
     const term = searchTerm.toLowerCase();
     
-    if (!term) return Object.values(patients);
+    // Filter patients based on search term
+    let result = Object.values(patients);
     
-    return Object.values(patients).filter(
-      patient => 
-        patient.name.toLowerCase().includes(term) ||
-        patient.condition.toLowerCase().includes(term)
-    );
+    if (term) {
+      result = result.filter(
+        patient => 
+          patient.name.toLowerCase().includes(term) ||
+          patient.condition.toLowerCase().includes(term)
+      );
+    }
+    
+    // Sort patients based on selected sort field and order
+    result.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'age':
+          comparison = a.age - b.age;
+          break;
+        case 'lastVisit':
+          comparison = parseISO(a.lastVisit).getTime() - parseISO(b.lastVisit).getTime();
+          break;
+        case 'riskScore':
+          comparison = a.riskScore.value - b.riskScore.value;
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      // Reverse the comparison if the sort order is descending
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+    
+    return result;
   },
   
   selectedPatient: () => {

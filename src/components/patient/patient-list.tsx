@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2 } from 'lucide-react';
-import { usePatientStore } from '@/stores/patient-store';
+import { usePatientStore, SortField } from '@/stores/patient-store';
+import { SortButton } from '@/components/ui/sort-button';
 import { format, parseISO } from 'date-fns';
 
 // Helper function to render risk badge
@@ -45,7 +46,10 @@ export function PatientList() {
     selectPatient, 
     isLoading, 
     setLoading,
-    selectedPatientId
+    selectedPatientId,
+    sortField,
+    sortOrder,
+    setSorting
   } = usePatientStore();
   
   const handlePatientSelect = (patientId: string) => {
@@ -56,6 +60,10 @@ export function PatientList() {
     setTimeout(() => {
       setLoading(false);
     }, 800);
+  };
+
+  const handleSort = (field: SortField) => {
+    setSorting(field);
   };
 
   return (
@@ -76,6 +84,31 @@ export function PatientList() {
             </div>
           </CardHeader>
           <CardContent>
+            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
+              <span className="text-sm text-muted-foreground">Sort by:</span>
+              <SortButton 
+                label="Age" 
+                field="age" 
+                currentSortField={sortField} 
+                currentSortOrder={sortOrder} 
+                onSort={handleSort} 
+              />
+              <SortButton 
+                label="Last Visit" 
+                field="lastVisit" 
+                currentSortField={sortField} 
+                currentSortOrder={sortOrder} 
+                onSort={handleSort} 
+              />
+              <SortButton 
+                label="Risk" 
+                field="riskScore" 
+                currentSortField={sortField} 
+                currentSortOrder={sortOrder} 
+                onSort={handleSort} 
+              />
+            </div>
+            
             {isLoading ? (
               <div className="flex justify-center items-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
