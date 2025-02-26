@@ -5,18 +5,25 @@ import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export function DashboardHeader() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   
   const handleLogout = async () => {
     try {
-      await logout();
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
-      });
+      const success = await logout();
+      if (success) {
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out",
+        });
+        router.push('/');
+      } else {
+        throw new Error("Logout failed");
+      }
     } catch (error) {
       toast({
         title: "Error",

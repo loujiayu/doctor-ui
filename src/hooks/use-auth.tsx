@@ -1,74 +1,47 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-interface User {
-  name: string;
-  email: string;
-  provider?: string;
-}
+import { useEffect } from 'react';
+import { useAuthStore } from '@/stores/auth-store';
+import { checkLoginStatus, logout as logoutService, getGoogleSSOUrl } from '@/services/auth-service';
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Check login status from the endpoint
+  const { user, isAuthenticated, isLoading, error } = useAuthStore();
+  const setLoading = useAuthStore((state) => state.setLoading);
+  const setError = useAuthStore((state) => state.setError);
+  
+  // Check login status on mount
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/loginstatus', {
-          credentials: 'include', // Important for cookies
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.loggedIn) {
-            setIsAuthenticated(true);
-            setUser({
-              name: data.name || 'Dr. Charles Sandors',
-              email: data.email || 'doctor@example.com',
-              provider: data.provider || 'google'
-            });
-          } else {
-            setIsAuthenticated(false);
-            setUser(null);
-          }
-        } else {
-          console.error('Failed to check login status');
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Error checking login status:', error);
-        setIsAuthenticated(false);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
+    const verifyAuth = async () => {
+      setLoading(true);
+      await checkLoginStatus();
+      setLoading(false);
     };
     
-    checkLoginStatus();
-  }, []);
+    verifyAuth();
+  }, [setLoading]);
 
+  // Redirect to Google SSO
+  const loginWithGoogle = () => {
+    const origin = window.location.origin;
+    const ssoUrl = getGoogleSSOUrl(origin);
+    window.location.href = ssoUrl;
+  };
+
+  // Logout user
   const logout = async () => {
-    try {
-      await fetch('http://localhost:5000/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-    } catch (error) {
-      console.error('Error during logout:', error);
-    } finally {
-      setIsAuthenticated(false);
-      setUser(null);
-    }
+    setLoading(true);
+    const result = await logoutService();
+    setLoading(false);
+    return result.success;
   };
 
   return {
     user,
     isLoading,
     isAuthenticated,
-    logout
+    error,
+    loginWithGoogle,
+    logout,
+    clearError: () => setError(null)
   };
 }
