@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getGoogleSSOUrl } from '@/services/auth';
+import { useAuthStore } from '@/stores/auth-store';
 
 export function LoginPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);

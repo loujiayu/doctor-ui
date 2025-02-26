@@ -1,34 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { MedicalDashboard } from '@/components/medical-dashboard';
 import { LoginPage } from '@/components/auth/login-page';
 import { PatientList } from '@/components/patient/patient-list';
 import { Loader2 } from 'lucide-react';
-import { checkLoginStatus } from '@/services/auth';
+import { useAuthStore } from '@/stores/auth-store';
 import { usePatientStore } from '@/stores/patient-store';
 
 export default function Home() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  
+  const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
   const { selectedPatientId, clearSelectedPatient } = usePatientStore();
 
   useEffect(() => {
-    const verifyAuth = async () => {
-      try {
-        const result = await checkLoginStatus();
-        setIsAuthenticated(!!(result.success && result.isLoggedIn));
-      } catch (error) {
-        console.error('Failed to verify authentication:', error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    verifyAuth();
-  }, []);
+    checkAuth();
+  }, [checkAuth]);
   
   const handleBackToPatientList = () => {
     clearSelectedPatient();

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { logout } from '@/services/auth';
+import { useAuthStore } from '@/stores/auth-store';
 import { usePatientStore } from '@/stores/patient-store';
 import { format, parseISO } from 'date-fns';
 
@@ -17,6 +17,7 @@ export function DashboardHeader({ patientId }: DashboardHeaderProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { user, logout } = useAuthStore();
   
   // Get selected patient from the store
   const selectedPatient = usePatientStore(state => state.selectedPatient());
@@ -55,16 +56,12 @@ export function DashboardHeader({ patientId }: DashboardHeaderProps) {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      const result = await logout();
-      if (result.success) {
-        toast({
-          title: "Logged out",
-          description: "You have been successfully logged out",
-        });
-        router.push('/');
-      } else {
-        throw new Error(result.error || "Logout failed");
-      }
+      await logout();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+      router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
       toast({
@@ -103,7 +100,7 @@ export function DashboardHeader({ patientId }: DashboardHeaderProps) {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <span className="text-sm text-white/80">Dr. Charles Sandors</span>
+        <span className="text-sm text-white/80">{user?.name || 'Doctor'}</span>
         <Button
           variant="ghost"
           size="icon"

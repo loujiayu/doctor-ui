@@ -47,7 +47,7 @@ export async function checkLoginStatus(): Promise<AuthResult> {
  */
 export async function logout(): Promise<{ success: boolean; error?: string }> {
   try {
-    const response = await post<{}, null>(`${API_BASE_URL}/logout`, null);
+    const response = await get(`${API_BASE_URL}/logout`);
     
     return { 
       success: response.success,
