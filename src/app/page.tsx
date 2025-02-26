@@ -6,11 +6,13 @@ import { LoginPage } from '@/components/auth/login-page';
 import { PatientList } from '@/components/patient/patient-list';
 import { Loader2 } from 'lucide-react';
 import { checkLoginStatus } from '@/services/auth';
+import { usePatientStore } from '@/stores/patient-store';
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  
+  const { selectedPatientId, clearSelectedPatient } = usePatientStore();
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -28,12 +30,8 @@ export default function Home() {
     verifyAuth();
   }, []);
   
-  const handlePatientSelect = (patientId: string) => {
-    setSelectedPatientId(patientId);
-  };
-  
   const handleBackToPatientList = () => {
-    setSelectedPatientId(null);
+    clearSelectedPatient();
   };
   
   // Show loading indicator while checking auth state
@@ -54,7 +52,7 @@ export default function Home() {
   
   // If authenticated but no patient selected, show patient list
   if (!selectedPatientId) {
-    return <PatientList onPatientSelect={handlePatientSelect} />;
+    return <PatientList />;
   }
   
   // If authenticated and patient selected, show medical dashboard

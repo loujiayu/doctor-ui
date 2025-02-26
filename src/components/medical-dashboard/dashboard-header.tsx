@@ -2,21 +2,12 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { logout } from '@/services/auth';
-
-// Mock patient data - in a real app would come from an API
-const patients = {
-  '1': { name: 'Sarah Johnson', age: 45, condition: 'Hypertension' },
-  '2': { name: 'Michael Chen', age: 32, condition: 'Lower Back Pain' },
-  '3': { name: 'Robert Smith', age: 67, condition: 'Diabetes, Type 2' },
-  '4': { name: 'Emily Wilson', age: 28, condition: 'Migraine' },
-  '5': { name: 'James Rodriguez', age: 55, condition: 'Arthritis' },
-  '6': { name: 'Sophia Lee', age: 38, condition: 'Anxiety Disorder' },
-  '7': { name: 'David Garcia', age: 61, condition: 'COPD' },
-};
+import { usePatientStore } from '@/stores/patient-store';
+import { format, parseISO } from 'date-fns';
 
 interface DashboardHeaderProps {
   patientId?: string;
@@ -27,9 +18,39 @@ export function DashboardHeader({ patientId }: DashboardHeaderProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   
-  const patientName = patientId && patients[patientId] 
-    ? patients[patientId].name 
-    : 'Select Patient';
+  // Get selected patient from the store
+  const selectedPatient = usePatientStore(state => state.selectedPatient());
+  
+  const patientName = selectedPatient ? selectedPatient.name : 'Select Patient';
+
+  // Generate risk score element
+  const getRiskScoreElement = () => {
+    if (!selectedPatient) return null;
+    
+    const { riskScore } = selectedPatient;
+    const colors = {
+      low: 'bg-green-100 text-green-800',
+      medium: 'bg-yellow-100 text-yellow-800',
+      high: 'bg-orange-100 text-orange-800',
+      critical: 'bg-red-100 text-red-800',
+    };
+    
+    const getTrendIcon = () => {
+      switch (riskScore.trend) {
+        case 'improving': return <ArrowDown className="h-3 w-3 ml-1 text-green-600" />;
+        case 'worsening': return <ArrowUp className="h-3 w-3 ml-1 text-red-600" />;
+        case 'stable': return <Minus className="h-3 w-3 ml-1 text-gray-600" />;
+        default: return null;
+      }
+    };
+    
+    return (
+      <div className={`text-xs px-2 py-1 rounded-full inline-flex items-center ${colors[riskScore.level]} ml-2`}>
+        {riskScore.value}% {riskScore.level.charAt(0).toUpperCase() + riskScore.level.slice(1)}
+        {getTrendIcon()}
+      </div>
+    );
+  };
   
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -68,7 +89,17 @@ export function DashboardHeader({ patientId }: DashboardHeaderProps) {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-white">Vicki.AI</h1>
-          {patientId && <p className="text-sm font-medium text-blue-200">Patient: {patientName}</p>}
+          {selectedPatient && (
+            <div>
+              <p className="text-sm font-medium text-blue-200 flex items-center">
+                Patient: {patientName} • {selectedPatient.age} years • {selectedPatient.condition}
+                {getRiskScoreElement()}
+              </p>
+              <p className="text-xs text-blue-200/70 mt-0.5">
+                Last visit: {format(parseISO(selectedPatient.lastVisit), 'MMMM d, yyyy')}
+              </p>
+            </div>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-3">

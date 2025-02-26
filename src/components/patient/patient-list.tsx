@@ -2,98 +2,60 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search } from 'lucide-react';
+import { Search, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2 } from 'lucide-react';
+import { usePatientStore } from '@/stores/patient-store';
+import { format, parseISO } from 'date-fns';
 
-// Mock patient data
-const patients = [
-  { 
-    id: '1', 
-    name: 'Sarah Johnson', 
-    age: 45, 
-    condition: 'Hypertension',
-    appointmentTime: '9:00 AM',
-    image: 'https://randomuser.me/api/portraits/women/44.jpg'
-  },
-  { 
-    id: '2', 
-    name: 'Michael Chen', 
-    age: 32, 
-    condition: 'Lower Back Pain',
-    appointmentTime: '9:30 AM',
-    image: 'https://randomuser.me/api/portraits/men/32.jpg'
-  },
-  { 
-    id: '3', 
-    name: 'Robert Smith', 
-    age: 67, 
-    condition: 'Diabetes, Type 2',
-    appointmentTime: '10:15 AM',
-    image: 'https://randomuser.me/api/portraits/men/52.jpg'
-  },
-  { 
-    id: '4', 
-    name: 'Emily Wilson', 
-    age: 28, 
-    condition: 'Migraine',
-    appointmentTime: '11:00 AM',
-    image: 'https://randomuser.me/api/portraits/women/17.jpg'
-  },
-  { 
-    id: '5', 
-    name: 'James Rodriguez', 
-    age: 55, 
-    condition: 'Arthritis',
-    appointmentTime: '1:30 PM',
-    image: 'https://randomuser.me/api/portraits/men/72.jpg'
-  },
-  { 
-    id: '6', 
-    name: 'Sophia Lee', 
-    age: 38, 
-    condition: 'Anxiety Disorder',
-    appointmentTime: '2:15 PM',
-    image: 'https://randomuser.me/api/portraits/women/32.jpg'
-  },
-  { 
-    id: '7', 
-    name: 'David Garcia', 
-    age: 61, 
-    condition: 'COPD',
-    appointmentTime: '3:00 PM',
-    image: 'https://randomuser.me/api/portraits/men/40.jpg'
-  },
-];
-
-interface PatientListProps {
-  onPatientSelect: (patientId: string) => void;
-}
-
-export function PatientList({ onPatientSelect }: PatientListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+// Helper function to render risk badge
+const RiskBadge = ({ level, trend }) => {
+  const colors = {
+    low: 'bg-green-100 text-green-800',
+    medium: 'bg-yellow-100 text-yellow-800',
+    high: 'bg-orange-100 text-orange-800',
+    critical: 'bg-red-100 text-red-800',
+  };
   
-  // Filter patients based on search term
-  const filteredPatients = patients.filter(
-    patient => 
-      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.condition.toLowerCase().includes(searchTerm.toLowerCase())
+  const getTrendIcon = () => {
+    switch (trend) {
+      case 'improving': return <ArrowDown className="h-3 w-3 ml-1 text-green-600" />;
+      case 'worsening': return <ArrowUp className="h-3 w-3 ml-1 text-red-600" />;
+      case 'stable': return <Minus className="h-3 w-3 ml-1 text-gray-600" />;
+      default: return null;
+    }
+  };
+  
+  return (
+    <div className={`text-xs px-2 py-1 rounded-full flex items-center ${colors[level]}`}>
+      {level.charAt(0).toUpperCase() + level.slice(1)} Risk
+      {getTrendIcon()}
+    </div>
   );
+};
 
+export function PatientList() {
+  const { 
+    filteredPatients, 
+    searchTerm, 
+    setSearchTerm, 
+    selectPatient, 
+    isLoading, 
+    setLoading,
+    selectedPatientId
+  } = usePatientStore();
+  
   const handlePatientSelect = (patientId: string) => {
-    setIsLoading(true);
-    setSelectedPatientId(patientId);
+    setLoading(true);
+    selectPatient(patientId);
     
-    // Simulate loading patient data
+    // Simulate a short loading delay
     setTimeout(() => {
-      setIsLoading(false);
-      onPatientSelect(patientId);
-    }, 1000);
+      setLoading(false);
+    }, 800);
   };
 
   return (
@@ -121,7 +83,7 @@ export function PatientList({ onPatientSelect }: PatientListProps) {
             ) : (
               <ScrollArea className="h-[60vh]">
                 <div className="space-y-4">
-                  {filteredPatients.map((patient) => (
+                  {filteredPatients().map((patient) => (
                     <div 
                       key={patient.id}
                       className={`flex items-center justify-between p-4 rounded-lg ${
@@ -137,12 +99,18 @@ export function PatientList({ onPatientSelect }: PatientListProps) {
                         </Avatar>
                         <div>
                           <h3 className="font-medium">{patient.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {patient.age} years • {patient.condition}
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-muted-foreground">
+                              {patient.age} years • {patient.condition}
+                            </p>
+                            <RiskBadge level={patient.riskScore.level} trend={patient.riskScore.trend} />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Last visit: {format(parseISO(patient.lastVisit), 'MMM d, yyyy')}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-end gap-2">
                         <span className="text-sm text-muted-foreground">{patient.appointmentTime}</span>
                         <Button 
                           onClick={() => handlePatientSelect(patient.id)}
@@ -154,7 +122,7 @@ export function PatientList({ onPatientSelect }: PatientListProps) {
                     </div>
                   ))}
                   
-                  {filteredPatients.length === 0 && (
+                  {filteredPatients().length === 0 && (
                     <div className="py-8 text-center text-muted-foreground">
                       No patients match your search.
                     </div>

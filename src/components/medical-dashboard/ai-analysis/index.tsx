@@ -3,6 +3,7 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { usePatientStore } from '@/stores/patient-store';
 
 import { SoapNoteTab } from './soap-note-tab';
 import { TreatmentAlgorithmTab } from './treatment-algorithm-tab';
@@ -21,12 +22,38 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  
+  // Get selected patient from store
+  const selectedPatient = usePatientStore(state => state.selectedPatient());
 
   const loadSoapNote = async () => {
     setIsLoading(true);
     // In a real app, we would pass the patientId to fetch data for a specific patient
     const note = await fetchSoapNote();
-    setSoapNote(note);
+    
+    // If we have a selected patient, customize the SOAP note with patient info
+    if (selectedPatient) {
+      // This is a simplified example - in a real app, you'd have more sophisticated personalization
+      let personalizedNote = note
+        .replace(/Patient Name/g, selectedPatient.name)
+        .replace(/\b\d{1,2} years old\b/g, `${selectedPatient.age} years old`)
+        .replace(/\bChief Complaint: .+\b/g, `Chief Complaint: ${selectedPatient.condition}`);
+      
+      // Add risk score assessment
+      let riskAssessment = '';
+      if (selectedPatient.riskScore.level === 'high' || selectedPatient.riskScore.level === 'critical') {
+        riskAssessment = `\n\n## Risk Assessment\nPatient has a ${selectedPatient.riskScore.value}% risk score (${selectedPatient.riskScore.level}), with ${selectedPatient.riskScore.trend} trend. Recommend increased monitoring and preventive interventions.`;
+      }
+      
+      // Add last visit info
+      const lastVisitInfo = `\n\nLast visit: ${selectedPatient.lastVisit}`;
+      
+      personalizedNote = personalizedNote + riskAssessment + lastVisitInfo;
+      setSoapNote(personalizedNote);
+    } else {
+      setSoapNote(note);
+    }
+    
     setIsLoading(false);
   };
 
@@ -72,18 +99,21 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
 
   // Re-fetch data when patientId changes
   useEffect(() => {
-    if (patientId) {
-      loadSoapNote();
-      loadDefaultPrompt();
-    }
-  }, [patientId]);
+    loadSoapNote();
+    loadDefaultPrompt();
+  }, [patientId, selectedPatient]);
 
   return (
     <Card className="md:col-span-2">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5" />
-          AI Analysis {patientId ? `for Patient #${patientId}` : ''}
+          AI Analysis {selectedPatient ? `for ${selectedPatient.name}` : ''}
+          {selectedPatient?.riskScore?.level === 'critical' && (
+            <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full ml-2">
+              High Risk Patient
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
