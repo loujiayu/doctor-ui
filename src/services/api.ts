@@ -6,16 +6,12 @@ export type ApiResponse<T> = {
   error?: string;
 };
 
-export async function get<T>(url: string, includeCredentials = false): Promise<ApiResponse<T>> {
+export async function get<T>(url: string, includeCredentials = true): Promise<ApiResponse<T>> {
   try {
     const options: RequestInit = {
       method: 'GET',
-      credentials: "include",
+      credentials: includeCredentials ? 'include' : 'same-origin',
     };
-    
-    if (includeCredentials) {
-      options.credentials = 'include';
-    }
     
     const response = await fetch(url, options);
     
@@ -47,7 +43,7 @@ export async function post<T, U = any>(url: string, body: U): Promise<ApiRespons
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: "include",
+      credentials: 'include',
       body: JSON.stringify(body),
     });
     
@@ -71,3 +67,52 @@ export async function post<T, U = any>(url: string, body: U): Promise<ApiRespons
     };
   }
 }
+
+// Mock data for fallback
+export const mockSoapNote = `
+# Patient Visit Note
+
+## Subjective
+- Chief Complaint: Persistent headaches for past 2 weeks
+- Location: Bilateral temporal region
+- Severity: 7/10 on pain scale
+- Quality: Throbbing, pressure-like
+- Timing: Worse in mornings
+- Associated Symptoms: 
+  - Light sensitivity
+  - Mild nausea
+  - Disrupted sleep patterns
+
+## Objective
+- Vital Signs:
+  - BP: 128/82
+  - HR: 78
+  - Temp: 98.6°F
+  - RR: 16
+- Physical Examination:
+  - Alert and oriented x3
+  - No focal neurological deficits
+  - Mild tenderness to palpation in temporal regions
+  - Normal pupillary response
+  - No meningeal signs
+
+## Assessment
+1. Chronic Tension Headache (Primary)
+2. Sleep Disorder - Unspecified
+3. Possible Migraine Component
+
+## Plan
+1. Medications:
+   - Start Amitriptyline 10mg qhs
+   - Continue PRN NSAIDs
+2. Diagnostics:
+   - Sleep study referral
+   - Headache diary
+3. Follow-up:
+   - Return in 2 weeks
+   - Sooner if symptoms worsen
+4. Patient Education:
+   - Sleep hygiene discussed
+   - Stress management techniques
+   - Dietary trigger avoidance
+`;

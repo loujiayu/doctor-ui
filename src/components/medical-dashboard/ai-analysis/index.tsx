@@ -7,7 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { SoapNoteTab } from './soap-note-tab';
 import { TreatmentAlgorithmTab } from './treatment-algorithm-tab';
 import { PromptConfigTab } from './prompt-config-tab';
-import { fetchSoapNote, fetchDefaultPrompt, savePrompt } from '@/lib/api';
+import { fetchSoapNote } from '@/services/soap';
+import { fetchSoapNotePrompt, saveSoapNotePrompt } from '@/services/prompts';
 
 export function AIAnalysis() {
   const [soapNote, setSoapNote] = useState<string | null>(null);
@@ -27,7 +28,7 @@ export function AIAnalysis() {
   const loadDefaultPrompt = async () => {
     setIsLoadingPrompt(true);
     try {
-      const prompt = await fetchDefaultPrompt();
+      const prompt = await fetchSoapNotePrompt();
       setPromptText(prompt);
     } catch (error) {
       setPromptText("");
@@ -45,7 +46,7 @@ export function AIAnalysis() {
   const handleSavePrompt = async () => {
     setIsSaving(true);
     try {
-      await savePrompt(promptText);
+      await saveSoapNotePrompt(promptText);
       toast({
         title: "Prompt Saved",
         description: "Your prompt configuration has been updated successfully.",
