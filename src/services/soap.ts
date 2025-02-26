@@ -1,5 +1,4 @@
 import { get, ApiResponse } from '@/services/api';
-import { mockSoapNote } from '@/services/api'; // Import the mock data from API
 
 interface SoapNoteResponse {
   message: string;
@@ -23,7 +22,7 @@ export async function fetchSoapNote(): Promise<string> {
   } catch (error) {
     console.error('Error fetching SOAP note:', error);
     // Return the mock data as fallback
-    return mockSoapNote;
+    return "";
   }
 }
 
