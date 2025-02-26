@@ -11,6 +11,7 @@ import { Loader2 } from 'lucide-react';
 import { usePatientStore, SortField } from '@/stores/patient-store';
 import { SortButton } from '@/components/ui/sort-button';
 import { format, parseISO } from 'date-fns';
+import { AppHeader } from '@/components/layout/app-header';
 
 // Helper function to render risk badge
 const RiskBadge = ({ level, trend }) => {
@@ -69,7 +70,8 @@ export function PatientList() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-[800px] mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-6">Patient Dashboard</h1>
+        <AppHeader subtitle="Patient Dashboard" />
+        
         <Card>
           <CardHeader>
             <CardTitle>Today's Appointments</CardTitle>
