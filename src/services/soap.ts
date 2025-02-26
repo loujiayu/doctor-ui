@@ -37,6 +37,6 @@ export async function generateSoapNote(patientData: any): Promise<string> {
     return await fetchSoapNote();
   } catch (error) {
     console.error('Error generating SOAP note:', error);
-    return mockSoapNote;
+    return "";
   }
 }
