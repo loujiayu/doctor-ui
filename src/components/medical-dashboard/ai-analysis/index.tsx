@@ -10,7 +10,11 @@ import { PromptConfigTab } from './prompt-config-tab';
 import { fetchSoapNote } from '@/services/soap';
 import { fetchSoapNotePrompt, saveSoapNotePrompt } from '@/services/prompts';
 
-export function AIAnalysis() {
+interface AIAnalysisProps {
+  patientId?: string;
+}
+
+export function AIAnalysis({ patientId }: AIAnalysisProps) {
   const [soapNote, setSoapNote] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [promptText, setPromptText] = useState('');
@@ -20,6 +24,7 @@ export function AIAnalysis() {
 
   const loadSoapNote = async () => {
     setIsLoading(true);
+    // In a real app, we would pass the patientId to fetch data for a specific patient
     const note = await fetchSoapNote();
     setSoapNote(note);
     setIsLoading(false);
@@ -65,17 +70,20 @@ export function AIAnalysis() {
     }
   };
 
+  // Re-fetch data when patientId changes
   useEffect(() => {
-    loadSoapNote();
-    loadDefaultPrompt();
-  }, []);
+    if (patientId) {
+      loadSoapNote();
+      loadDefaultPrompt();
+    }
+  }, [patientId]);
 
   return (
     <Card className="md:col-span-2">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5" />
-          AI Analysis
+          AI Analysis {patientId ? `for Patient #${patientId}` : ''}
         </CardTitle>
       </CardHeader>
       <CardContent>

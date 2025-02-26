@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { MedicalDashboard } from '@/components/medical-dashboard';
 import { LoginPage } from '@/components/auth/login-page';
+import { PatientList } from '@/components/patient/patient-list';
 import { Loader2 } from 'lucide-react';
 import { checkLoginStatus } from '@/services/auth';
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -26,6 +28,14 @@ export default function Home() {
     verifyAuth();
   }, []);
   
+  const handlePatientSelect = (patientId: string) => {
+    setSelectedPatientId(patientId);
+  };
+  
+  const handleBackToPatientList = () => {
+    setSelectedPatientId(null);
+  };
+  
   // Show loading indicator while checking auth state
   if (isLoading) {
     return (
@@ -37,6 +47,16 @@ export default function Home() {
     );
   }
 
-  // Show login page or dashboard based on auth state
-  return isAuthenticated ? <MedicalDashboard /> : <LoginPage />;
+  // If not authenticated, show login page
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+  
+  // If authenticated but no patient selected, show patient list
+  if (!selectedPatientId) {
+    return <PatientList onPatientSelect={handlePatientSelect} />;
+  }
+  
+  // If authenticated and patient selected, show medical dashboard
+  return <MedicalDashboard patientId={selectedPatientId} onBack={handleBackToPatientList} />;
 }
