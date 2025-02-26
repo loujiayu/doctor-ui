@@ -1,35 +1,39 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { logout } from '@/services/auth';
 
 export function DashboardHeader() {
-  const { user, logout } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
-      const success = await logout();
-      if (success) {
+      const result = await logout();
+      if (result.success) {
         toast({
           title: "Logged out",
           description: "You have been successfully logged out",
         });
         router.push('/');
       } else {
-        throw new Error("Logout failed");
+        throw new Error(result.error || "Logout failed");
       }
     } catch (error) {
+      console.error('Logout error:', error);
       toast({
         title: "Error",
         description: "Failed to log out. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
   
@@ -46,14 +50,13 @@ export function DashboardHeader() {
         <h1 className="text-2xl font-bold text-white">Vicki.AI</h1>
       </div>
       <div className="flex items-center gap-3">
-        <span className="text-sm text-white/80">
-          {user?.name || 'Dr. Charles Sandors'}
-        </span>
+        <span className="text-sm text-white/80">Dr. Charles Sandors</span>
         <Button
           variant="ghost"
           size="icon"
           className="text-white/80 hover:text-white hover:bg-white/10"
           onClick={handleLogout}
+          disabled={isLoggingOut}
         >
           <LogOut className="h-4 w-4" />
         </Button>

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
-import { checkLoginStatus, logout as logoutService, getGoogleSSOUrl } from '@/services/auth-service';
+import { checkLoginStatus, logout as logoutService, getGoogleSSOUrl } from '@/services/auth';
 
 export function useAuth() {
   const { user, isAuthenticated, isLoading, error } = useAuthStore();
@@ -12,13 +12,14 @@ export function useAuth() {
   // Check login status on mount
   useEffect(() => {
     const verifyAuth = async () => {
+      console.log('Checking login status...');
       setLoading(true);
       await checkLoginStatus();
       setLoading(false);
     };
     
     verifyAuth();
-  }, [setLoading]);
+  }, []);
 
   // Redirect to Google SSO
   const loginWithGoogle = () => {

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getGoogleSSOUrl } from '@/services/auth';
 
 export function LoginPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -21,8 +22,8 @@ export function LoginPage() {
   const handleLogin = async () => {
     setIsLoggingIn(true);
     try {
-      // Redirect to Google SSO URL with the current origin as callback
-      const googleSSOUrl = `http://localhost:5000/login/google/doctor?cb=${encodeURIComponent(origin)}`;
+      // Get Google SSO URL with the current origin as callback
+      const googleSSOUrl = getGoogleSSOUrl(origin);
       window.location.href = googleSSOUrl;
     } catch (error) {
       console.error('Login error:', error);
