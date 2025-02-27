@@ -1,24 +1,25 @@
-import { get, ApiResponse } from '@/services/api';
+import { get, post, ApiResponse } from '@/services/api';
 
 interface SoapNoteResponse {
-  message: string;
+  content: string;
 }
 
 // Endpoint for SOAP note generation
-const SOAPNOTE_API = 'https://doctormt-85352025976.us-central1.run.app';
+const API_BASE_URL = 'http://localhost:5000';
 
 /**
  * Fetch the generated SOAP note
  */
-export async function fetchSoapNote(): Promise<string> {
+export async function fetchSoapNote(patient?: any): Promise<string> {
   try {
-    const response = await get<SoapNoteResponse>(SOAPNOTE_API);
+    const patientId = patient?.id || '1';
+    const response = await post<SoapNoteResponse>(`${API_BASE_URL}/patients/${patientId}/soap`, patient || {});
     
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Failed to fetch SOAP note');
     }
     
-    return response.data.message;
+    return response.data.content;
   } catch (error) {
     console.error('Error fetching SOAP note:', error);
     // Return the mock data as fallback

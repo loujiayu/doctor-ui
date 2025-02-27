@@ -9,14 +9,17 @@ interface PromptSaveRequest {
 }
 
 // Endpoint base for prompts
-const PROMPTS_API = 'https://prompts-85352025976.us-central1.run.app';
+const API_BASE_URL = 'http://localhost:5000';
 
 /**
  * Fetch the default SOAP note prompt
+ * @param userId The ID of the user (doctor)
  */
-export async function fetchSoapNotePrompt(): Promise<string> {
+export async function fetchSoapNotePrompt(userId: number): Promise<string> {
   try {
-    const response = await get<PromptResponse>(`${PROMPTS_API}?key=soapnote`);
+    const response = await get<PromptResponse>(
+      `${API_BASE_URL}/prompt/${userId}?user_type=doctor&prompt_blob=soap`
+    );
     
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Failed to fetch prompt');
@@ -31,15 +34,17 @@ export async function fetchSoapNotePrompt(): Promise<string> {
 
 /**
  * Save a modified SOAP note prompt
+ * @param userId The ID of the user (doctor)
+ * @param promptText The prompt text to save
  */
-export async function saveSoapNotePrompt(promptText: string): Promise<boolean> {
+export async function saveSoapNotePrompt(userId: number, promptText: string): Promise<boolean> {
   try {
     const payload: PromptSaveRequest = {
       prompt: promptText
     };
     
     const response = await post<{}, PromptSaveRequest>(
-      `${PROMPTS_API}?key=soapnote`, 
+      `${API_BASE_URL}/prompt/${userId}?user_type=doctor&prompt_blob=soap`, 
       payload
     );
     
@@ -50,49 +55,6 @@ export async function saveSoapNotePrompt(promptText: string): Promise<boolean> {
     return true;
   } catch (error) {
     console.error('Error saving SOAP note prompt:', error);
-    throw error;
-  }
-}
-
-/**
- * Fetch prompt by key
- */
-export async function fetchPromptByKey(key: string): Promise<string> {
-  try {
-    const response = await get<PromptResponse>(`${PROMPTS_API}?key=${key}`);
-    
-    if (!response.success || !response.data) {
-      throw new Error(response.error || `Failed to fetch ${key} prompt`);
-    }
-    
-    return response.data.content;
-  } catch (error) {
-    console.error(`Error fetching ${key} prompt:`, error);
-    return "";
-  }
-}
-
-/**
- * Save prompt by key
- */
-export async function savePromptByKey(key: string, promptText: string): Promise<boolean> {
-  try {
-    const payload: PromptSaveRequest = {
-      prompt: promptText
-    };
-    
-    const response = await post<{}, PromptSaveRequest>(
-      `${PROMPTS_API}?key=${key}`, 
-      payload
-    );
-    
-    if (!response.success) {
-      throw new Error(response.error || `Failed to save ${key} prompt`);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error(`Error saving ${key} prompt:`, error);
     throw error;
   }
 }

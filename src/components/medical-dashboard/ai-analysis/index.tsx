@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePatientStore } from '@/stores/patient-store';
+// Import the auth store to get the current user
+import { useAuthStore } from '@/stores/auth-store';
 
 import { SoapNoteTab } from './soap-note-tab';
 import { TreatmentAlgorithmTab } from './treatment-algorithm-tab';
@@ -25,11 +27,14 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   
   // Get selected patient from store
   const selectedPatient = usePatientStore(state => state.selectedPatient());
+  // Get current authenticated user
+  const user = useAuthStore(state => state.user);
+  const userId = user ? parseInt(user.id) : 1; // Convert string ID to number, default to 1 if not available
 
   const loadSoapNote = async () => {
     setIsLoading(true);
-    // In a real app, we would pass the patientId to fetch data for a specific patient
-    const note = await fetchSoapNote();
+    // Pass the selected patient to fetch data for a specific patient
+    const note = await fetchSoapNote(selectedPatient);
     
     // If we have a selected patient, customize the SOAP note with patient info
     if (selectedPatient) {
@@ -51,7 +56,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   const loadDefaultPrompt = async () => {
     setIsLoadingPrompt(true);
     try {
-      const prompt = await fetchSoapNotePrompt();
+      const prompt = await fetchSoapNotePrompt(userId);
       setPromptText(prompt);
     } catch (error) {
       setPromptText("");
@@ -69,7 +74,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   const handleSavePrompt = async () => {
     setIsSaving(true);
     try {
-      await saveSoapNotePrompt(promptText);
+      await saveSoapNotePrompt(userId, promptText);
       toast({
         title: "Prompt Saved",
         description: "Your prompt configuration has been updated successfully.",
