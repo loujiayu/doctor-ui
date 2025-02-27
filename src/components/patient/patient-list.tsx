@@ -1,20 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2 } from 'lucide-react';
-import { usePatientStore, SortField } from '@/stores/patient-store';
+import { usePatientStore, SortField, RiskLevel } from '@/stores/patient-store';
 import { SortButton } from '@/components/ui/sort-button';
 import { format, parseISO } from 'date-fns';
 import { AppHeader } from '@/components/layout/app-header';
 
 // Helper function to render risk badge
-const RiskBadge = ({ level, trend }) => {
+const RiskBadge = ({ risk }: { risk: RiskLevel }) => {
   const colors = {
     low: 'bg-green-100 text-green-800',
     medium: 'bg-yellow-100 text-yellow-800',
@@ -22,19 +22,9 @@ const RiskBadge = ({ level, trend }) => {
     critical: 'bg-red-100 text-red-800',
   };
   
-  const getTrendIcon = () => {
-    switch (trend) {
-      case 'improving': return <ArrowDown className="h-3 w-3 ml-1 text-green-600" />;
-      case 'worsening': return <ArrowUp className="h-3 w-3 ml-1 text-red-600" />;
-      case 'stable': return <Minus className="h-3 w-3 ml-1 text-gray-600" />;
-      default: return null;
-    }
-  };
-  
   return (
-    <div className={`text-xs px-2 py-1 rounded-full flex items-center ${colors[level]}`}>
-      {level.charAt(0).toUpperCase() + level.slice(1)} Risk
-      {getTrendIcon()}
+    <div className={`text-xs px-2 py-1 rounded-full ${colors[risk]}`}>
+      {risk.charAt(0).toUpperCase() + risk.slice(1)} Risk
     </div>
   );
 };
@@ -50,8 +40,14 @@ export function PatientList() {
     selectedPatientId,
     sortField,
     sortOrder,
-    setSorting
+    setSorting,
+    fetchPatients
   } = usePatientStore();
+  
+  // Fetch patients when component mounts
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
   
   const handlePatientSelect = (patientId: string) => {
     setLoading(true);
@@ -104,7 +100,7 @@ export function PatientList() {
               />
               <SortButton 
                 label="Risk" 
-                field="riskScore" 
+                field="risk" 
                 currentSortField={sortField} 
                 currentSortOrder={sortOrder} 
                 onSort={handleSort} 
@@ -138,7 +134,7 @@ export function PatientList() {
                             <p className="text-xs text-muted-foreground">
                               {patient.age} years • {patient.condition}
                             </p>
-                            <RiskBadge level={patient.riskScore.level} trend={patient.riskScore.trend} />
+                            <RiskBadge risk={patient.risk} />
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             Last visit: {format(parseISO(patient.lastVisit), 'MMM d, yyyy')}
@@ -146,7 +142,7 @@ export function PatientList() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <span className="text-sm text-muted-foreground">{patient.appointmentTime}</span>
+                        {/* <span className="text-sm text-muted-foreground">{patient.appointmentTime}</span> */}
                         <Button 
                           onClick={() => handlePatientSelect(patient.id)}
                           size="sm"

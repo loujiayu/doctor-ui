@@ -39,16 +39,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
         .replace(/\b\d{1,2} years old\b/g, `${selectedPatient.age} years old`)
         .replace(/\bChief Complaint: .+\b/g, `Chief Complaint: ${selectedPatient.condition}`);
       
-      // Add risk score assessment
-      let riskAssessment = '';
-      if (selectedPatient.riskScore.level === 'high' || selectedPatient.riskScore.level === 'critical') {
-        riskAssessment = `\n\n## Risk Assessment\nPatient has a ${selectedPatient.riskScore.value}% risk score (${selectedPatient.riskScore.level}), with ${selectedPatient.riskScore.trend} trend. Recommend increased monitoring and preventive interventions.`;
-      }
-      
-      // Add last visit info
-      const lastVisitInfo = `\n\nLast visit: ${selectedPatient.lastVisit}`;
-      
-      personalizedNote = personalizedNote + riskAssessment + lastVisitInfo;
+      personalizedNote = personalizedNote;
       setSoapNote(personalizedNote);
     } else {
       setSoapNote(note);
@@ -109,7 +100,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5" />
           AI Analysis {selectedPatient ? `for ${selectedPatient.name}` : ''}
-          {selectedPatient?.riskScore?.level === 'critical' && (
+          {selectedPatient?.risk === 'critical' && (
             <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full ml-2">
               High Risk Patient
             </span>

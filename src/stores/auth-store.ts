@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { checkLoginStatus, logout as apiLogout } from '@/services/auth';
 import { persist } from 'zustand/middleware';
+import { getDoctorById } from '@/services/doctors';
 
 interface User {
   id: string;
@@ -8,6 +9,9 @@ interface User {
   email: string;
   role: string;
   avatar?: string;
+  sso_provider?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface AuthState {
@@ -24,15 +28,6 @@ interface AuthState {
   setError: (error: string | null) => void;
 }
 
-// Mock user data - in a real app this would come from the API
-const mockUser: User = {
-  id: 'doctor-123',
-  name: 'Dr. Charles Sandors',
-  email: 'charles.sandors@example.com',
-  role: 'doctor',
-  avatar: '/avatars/doctor.png',
-};
-
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -48,15 +43,32 @@ export const useAuthStore = create<AuthState>()(
         try {
           const result = await checkLoginStatus();
           
-          if (result.success && result.isLoggedIn) {
-            // In a real app, you would fetch the user profile here
-            // For now, we'll use the mock user data
-            set({ 
-              isAuthenticated: true, 
-              user: mockUser,
-              isLoading: false 
-            });
-            return true;
+          if (result.success && result.isLoggedIn && result.userId) {
+            // Fetch the doctor profile using the doctor ID from login status
+            const doctorResponse = await getDoctorById(result.userId);
+            
+            if (doctorResponse.success && doctorResponse.data) {
+              // Map the doctor data to user structure
+              const doctor = doctorResponse.data;
+              const user: User = {
+                id: doctor.doctor_id.toString(),
+                name: doctor.full_name,
+                email: doctor.email,
+                role: 'doctor',
+                sso_provider: doctor.sso_provider,
+                created_at: doctor.created_at,
+                updated_at: doctor.updated_at
+              };
+              
+              set({ 
+                isAuthenticated: true, 
+                user,
+                isLoading: false 
+              });
+              return true;
+            } else {
+              throw new Error(doctorResponse.error || 'Failed to fetch doctor data');
+            }
           } else {
             set({ 
               isAuthenticated: false, 

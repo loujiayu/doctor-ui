@@ -28,7 +28,7 @@ export function DashboardHeader({ patientId }: DashboardHeaderProps) {
   const getRiskScoreElement = () => {
     if (!selectedPatient) return null;
     
-    const { riskScore } = selectedPatient;
+    const { risk } = selectedPatient;
     const colors = {
       low: 'bg-green-100 text-green-800',
       medium: 'bg-yellow-100 text-yellow-800',
@@ -36,19 +36,9 @@ export function DashboardHeader({ patientId }: DashboardHeaderProps) {
       critical: 'bg-red-100 text-red-800',
     };
     
-    const getTrendIcon = () => {
-      switch (riskScore.trend) {
-        case 'improving': return <ArrowDown className="h-3 w-3 ml-1 text-green-600" />;
-        case 'worsening': return <ArrowUp className="h-3 w-3 ml-1 text-red-600" />;
-        case 'stable': return <Minus className="h-3 w-3 ml-1 text-gray-600" />;
-        default: return null;
-      }
-    };
-    
     return (
-      <div className={`text-xs px-2 py-1 rounded-full inline-flex items-center ${colors[riskScore.level]} ml-2`}>
-        {riskScore.value}% {riskScore.level.charAt(0).toUpperCase() + riskScore.level.slice(1)}
-        {getTrendIcon()}
+      <div className={`text-xs px-2 py-1 rounded-full inline-flex items-center ${colors[risk]} ml-2`}>
+        {risk.charAt(0).toUpperCase() + risk.slice(1)}
       </div>
     );
   };
