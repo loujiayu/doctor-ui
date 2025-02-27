@@ -1,7 +1,6 @@
 import { get, post, ApiResponse } from '@/services/api';
 import { ApiPatient } from '@/stores/patient-store';
-
-const API_BASE_URL = 'http://localhost:5000';
+import { API_BASE_URL } from '@/config/api';
 
 export const patientService = {
   async getPatients(): Promise<ApiPatient[]> {

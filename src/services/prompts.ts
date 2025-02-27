@@ -1,4 +1,5 @@
 import { get, post, ApiResponse } from '@/services/api';
+import { API_BASE_URL } from '@/config/api';
 
 interface PromptResponse {
   content: string;
@@ -7,9 +8,6 @@ interface PromptResponse {
 interface PromptSaveRequest {
   prompt: string;
 }
-
-// Endpoint base for prompts
-const API_BASE_URL = 'http://localhost:5000';
 
 /**
  * Fetch the default SOAP note prompt

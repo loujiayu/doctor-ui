@@ -1,4 +1,5 @@
 import { get, post, ApiResponse } from '@/services/api';
+import { API_BASE_URL } from '@/config/api';
 
 interface LoginStatusResponse {
   logged_in: boolean;
@@ -11,8 +12,6 @@ interface AuthResult {
   userId?: string;
   error?: string;
 }
-
-const API_BASE_URL = 'http://localhost:5000';
 
 /**
  * Check if the user is currently logged in

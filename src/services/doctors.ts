@@ -1,4 +1,5 @@
 import { get } from './api';
+import { API_BASE_URL } from '@/config/api';
 
 export interface Doctor {
   doctor_id: number;
@@ -10,5 +11,5 @@ export interface Doctor {
 }
 
 export async function getDoctorById(id: string) {
-  return get<Doctor>(`http://localhost:5000/doctors/${id}`);
+  return get<Doctor>(`${API_BASE_URL}/doctors/${id}`);
 }

@@ -1,11 +1,11 @@
 import { get, post, ApiResponse } from '@/services/api';
+import { API_BASE_URL } from '@/config/api';
 
 interface SoapNoteResponse {
   content: string;
 }
 
 // Endpoint for SOAP note generation
-const API_BASE_URL = 'http://localhost:5000';
 
 /**
  * Fetch the generated SOAP note
