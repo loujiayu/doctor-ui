@@ -80,14 +80,16 @@ export async function saveSoapNotePrompt(userId: number, promptText: string): Pr
  * @param userId The ID of the user (doctor)
  */
 export async function fetchDvxAnalysisPrompt(userId: number): Promise<string> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
   try {
-    // In a real implementation, this would be an API call
-    // For now, we'll check localStorage or return default
-    const saved = localStorage.getItem(`dvx-prompt-${userId}`);
-    return saved || DEFAULT_DVX_PROMPT;
+    const response = await get<PromptResponse>(
+      `${API_BASE_URL}/prompt/${userId}?user_type=doctor&prompt_blob=dvx`
+    );
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error || 'Failed to fetch prompt');
+    }
+    
+    return response.data.content;
   } catch (error) {
     console.error('Error fetching DVX analysis prompt:', error);
     return DEFAULT_DVX_PROMPT;
@@ -100,12 +102,20 @@ export async function fetchDvxAnalysisPrompt(userId: number): Promise<string> {
  * @param promptText The prompt text to save
  */
 export async function saveDvxAnalysisPrompt(userId: number, promptText: string): Promise<boolean> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
   try {
-    // In a real implementation, this would be an API call
-    localStorage.setItem(`dvx-prompt-${userId}`, promptText);
+    const payload: PromptSaveRequest = {
+      prompt: promptText
+    };
+    
+    const response = await post<{}, PromptSaveRequest>(
+      `${API_BASE_URL}/prompt/${userId}?user_type=doctor&prompt_blob=dvx`, 
+      payload
+    );
+    
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to save prompt');
+    }
+    
     return true;
   } catch (error) {
     console.error('Error saving DVX analysis prompt:', error);

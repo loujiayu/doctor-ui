@@ -104,14 +104,6 @@ export function PatientList() {
             <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-2 border-b border-slate-800/50">
               <span className="text-sm text-slate-400">Sort by:</span>
               <SortButton 
-                label="Name" 
-                field="name" 
-                currentSortField={sortField} 
-                currentSortOrder={sortOrder} 
-                onSort={handleSort}
-                className="bg-slate-800 text-slate-200 hover:bg-slate-700" 
-              />
-              <SortButton 
                 label="Age" 
                 field="age" 
                 currentSortField={sortField} 

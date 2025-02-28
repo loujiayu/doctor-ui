@@ -36,7 +36,7 @@ export async function get<T>(url: string, includeCredentials = true): Promise<Ap
   }
 }
 
-export async function post<T, U = any>(url: string, body: U): Promise<ApiResponse<T>> {
+export async function post<T, U = any>(url: string, body?: U): Promise<ApiResponse<T>> {
   try {
     const response = await fetch(url, {
       method: 'POST',

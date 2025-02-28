@@ -17,6 +17,7 @@ import {
   fetchDvxAnalysisPrompt,
   saveDvxAnalysisPrompt
 } from '@/services/prompts';
+import { fetchDvxAnalysis, DifferentialDiagnosis } from '@/services/dvx-service';
 
 interface AIAnalysisProps {
   patientId?: string;
@@ -24,7 +25,7 @@ interface AIAnalysisProps {
 
 export function AIAnalysis({ patientId }: AIAnalysisProps) {
   const [soapNote, setSoapNote] = useState<SoapNoteSchema | null>(null);
-  const [dvxAnalysis, setDvxAnalysis] = useState<string | null>(null);
+  const [dvxAnalysis, setDvxAnalysis] = useState<DifferentialDiagnosis[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDvx, setIsLoadingDvx] = useState(true);
   const [soapPromptText, setSoapPromptText] = useState('');
@@ -81,42 +82,20 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   const loadDvxAnalysis = async () => {
     setIsLoadingDvx(true);
     try {
-      // Simulate API call for DVX analysis
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      
-      // For the table-based DVX analysis, we'll return structured data rather than markdown
-      if (selectedPatient) {
-        // Generate sample differential diagnoses based on condition
-        let differentials = [];
-        
-        if (selectedPatient.condition.includes("chest")) {
-          differentials = [
-            { condition: "Acute Coronary Syndrome", risk: "High", confidence: 78, steps: "Immediate ECG, cardiac enzymes, consider aspirin" },
-            { condition: "Pulmonary Embolism", risk: "High", confidence: 65, steps: "D-dimer, chest CT if indicated" },
-            { condition: "Musculoskeletal Pain", risk: "Low", confidence: 45, steps: "Physical examination, NSAIDs if appropriate" },
-            { condition: "Anxiety-induced Chest Pain", risk: "Low", confidence: 35, steps: "Assess psychological factors, consider anxiety management" }
-          ];
-        } else if (selectedPatient.condition.includes("head")) {
-          differentials = [
-            { condition: "Tension Headache", risk: "Low", confidence: 72, steps: "Analgesics, stress management education" },
-            { condition: "Migraine", risk: "Medium", confidence: 68, steps: "Triptans if confirmed, preventive therapy if recurrent" },
-            { condition: "Sinusitis", risk: "Low", confidence: 41, steps: "Nasal decongestants, consider antibiotics if bacterial" },
-            { condition: "Intracranial Hypertension", risk: "High", confidence: 22, steps: "Neurological exam, consider imaging if concerning features" }
-          ];
-        } else {
-          differentials = [
-            { condition: "Primary diagnosis", risk: selectedPatient.risk === 'critical' ? "High" : "Medium", confidence: 82, steps: "Targeted treatment based on confirmation" },
-            { condition: "Secondary diagnosis", risk: "Medium", confidence: 65, steps: "Additional testing to confirm" },
-            { condition: "Tertiary diagnosis", risk: "Low", confidence: 43, steps: "Monitor for evolving symptoms" }
-          ];
-        }
-        
-        setDvxAnalysis(JSON.stringify(differentials));
-      } else {
+      if (!selectedPatient) {
         setDvxAnalysis(null);
+        return;
       }
+      
+      const differentialDiagnoses = await fetchDvxAnalysis(selectedPatient.id);
+      setDvxAnalysis(differentialDiagnoses);
     } catch (error) {
       console.error("Error loading DVX analysis:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load differential diagnosis analysis",
+        variant: "destructive",
+      });
       setDvxAnalysis(null);
     } finally {
       setIsLoadingDvx(false);
@@ -166,6 +145,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
           description: "Your AI DVX analysis prompt configuration has been updated successfully.",
           duration: 3000
         });
+        loadDvxAnalysis();
       }
     } catch (error) {
       toast({
@@ -196,10 +176,6 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
                 <Brain className="h-5 w-5 text-blue-700" />
               </div>
               AI Analysis
-              <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium border border-blue-200">
-                <Sparkles className="h-3 w-3 inline mr-0.5" />
-                GPT-4
-              </span>
             </CardTitle>
             <CardDescription className="text-gray-600 mt-1 font-medium">
               AI-powered clinical documentation and decision support
@@ -208,7 +184,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
           
           {selectedPatient && (
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary" className="bg-gray-100 text-gray-800 border-gray-300 shadow-sm font-medium text-sm py-1">
+              <Badge variant="secondary" className="bg-gray-100 text-gray-800 border-gray-300 shadow-sm font-medium text-sm py-1 hover:bg-gray-100 hover:text-gray-800">
                 Patient: {selectedPatient.name}
               </Badge>
               {selectedPatient.risk === 'critical' && (
