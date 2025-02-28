@@ -11,7 +11,14 @@ import { SoapNoteTab } from './soap-note-tab';
 import { TreatmentAlgorithmTab } from './treatment-algorithm-tab';
 import { PromptConfigTab } from './prompt-config-tab';
 import { fetchSoapNote } from '@/services/soap';
-import { fetchSoapNotePrompt, saveSoapNotePrompt } from '@/services/prompts';
+import { 
+  fetchSoapNotePrompt, 
+  saveSoapNotePrompt, 
+  fetchDvxAnalysisPrompt,
+  saveDvxAnalysisPrompt,
+  getDefaultSoapPrompt,
+  getDefaultDvxPrompt
+} from '@/services/prompts';
 
 interface AIAnalysisProps {
   patientId?: string;
@@ -20,7 +27,8 @@ interface AIAnalysisProps {
 export function AIAnalysis({ patientId }: AIAnalysisProps) {
   const [soapNote, setSoapNote] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [promptText, setPromptText] = useState('');
+  const [soapPromptText, setSoapPromptText] = useState('');
+  const [dvxPromptText, setDvxPromptText] = useState('');
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -53,16 +61,23 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
     setIsLoading(false);
   };
 
-  const loadDefaultPrompt = async () => {
+  const loadPrompts = async () => {
     setIsLoadingPrompt(true);
     try {
-      const prompt = await fetchSoapNotePrompt(userId);
-      setPromptText(prompt);
+      // Load both prompts in parallel
+      const [soapPrompt, dvxPrompt] = await Promise.all([
+        fetchSoapNotePrompt(userId),
+        fetchDvxAnalysisPrompt(userId)
+      ]);
+      
+      setSoapPromptText(soapPrompt);
+      setDvxPromptText(dvxPrompt);
     } catch (error) {
-      setPromptText("");
+      setSoapPromptText("");
+      setDvxPromptText("");
       toast({
         title: "Warning",
-        description: "Using fallback prompt configuration. Could not load from server.",
+        description: "Using fallback prompt configurations. Could not load from server.",
         variant: "destructive",
         duration: 5000
       });
@@ -71,20 +86,29 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
     }
   };
 
-  const handleSavePrompt = async () => {
+  const handleSavePrompt = async (type: 'soap' | 'dvx') => {
     setIsSaving(true);
     try {
-      await saveSoapNotePrompt(userId, promptText);
-      toast({
-        title: "Prompt Saved",
-        description: "Your prompt configuration has been updated successfully.",
-        duration: 3000
-      });
-      loadSoapNote();
+      if (type === 'soap') {
+        await saveSoapNotePrompt(userId, soapPromptText);
+        toast({
+          title: "SOAP Prompt Saved",
+          description: "Your SOAP note prompt configuration has been updated successfully.",
+          duration: 3000
+        });
+        loadSoapNote();
+      } else {
+        await saveDvxAnalysisPrompt(userId, dvxPromptText);
+        toast({
+          title: "DVX Prompt Saved",
+          description: "Your AI DVX analysis prompt configuration has been updated successfully.",
+          duration: 3000
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save prompt configuration.",
+        description: `Failed to save ${type === 'soap' ? 'SOAP note' : 'DVX analysis'} prompt configuration.`,
         variant: "destructive",
         duration: 3000
       });
@@ -96,7 +120,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   // Re-fetch data when patientId changes
   useEffect(() => {
     loadSoapNote();
-    loadDefaultPrompt();
+    loadPrompts();
   }, [patientId, selectedPatient]);
 
   return (
@@ -134,8 +158,10 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
             <PromptConfigTab 
               isLoadingPrompt={isLoadingPrompt}
               isSaving={isSaving}
-              promptText={promptText}
-              onPromptChange={setPromptText}
+              soapPromptText={soapPromptText}
+              dvxPromptText={dvxPromptText}
+              onSoapPromptChange={setSoapPromptText}
+              onDvxPromptChange={setDvxPromptText}
               onSavePrompt={handleSavePrompt}
             />
           </TabsContent>
