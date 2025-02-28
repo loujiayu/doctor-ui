@@ -64,13 +64,13 @@ export function MedicalDashboard({ patientId, onBack }: MedicalDashboardProps) {
           </AppHeader>
         </div>
         
-        <ReviewActions />
+        {/* <ReviewActions /> */}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <AIAnalysis patientId={patientId} />
 
           <div className="space-y-6">
-            <DeviceData patientId={patientId} />
+            {/* <DeviceData patientId={patientId} /> */}
             <ChatbotInteraction />
             <AIInsight />
           </div>

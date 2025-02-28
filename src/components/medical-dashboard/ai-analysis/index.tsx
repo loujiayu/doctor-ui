@@ -117,8 +117,8 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
           <TabsList className="mb-4">
             <TabsTrigger value="soap">SOAP Note</TabsTrigger>
             <TabsTrigger value="raw">Raw Analysis</TabsTrigger>
-            <TabsTrigger value="algorithm">Treatment Algorithm</TabsTrigger>
-            <TabsTrigger value="insurance">Insurance Notes</TabsTrigger>
+            {/* <TabsTrigger value="algorithm">Treatment Algorithm</TabsTrigger> */}
+            {/* <TabsTrigger value="insurance">Insurance Notes</TabsTrigger> */}
             <TabsTrigger value="prompt">Prompt Config</TabsTrigger>
           </TabsList>
 

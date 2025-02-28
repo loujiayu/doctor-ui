@@ -24,7 +24,7 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="bg-white/10 rounded-full p-3 backdrop-blur-sm">
+        <div className="bg-white/20 rounded-full p-3 backdrop-blur-sm">
           <Loader2 className="h-10 w-10 animate-spin text-white" />
         </div>
       </div>
