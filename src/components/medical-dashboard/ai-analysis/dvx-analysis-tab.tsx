@@ -65,13 +65,21 @@ export function DvxAnalysisTab({ isLoading, dvxAnalysis }: DvxAnalysisTabProps) 
   
   return (
     <div className="h-full overflow-auto p-3">
-      <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-        <h3 className="font-medium text-purple-800">
-          Differential Diagnosis for {selectedPatient.name}
-        </h3>
-        <p className="text-sm text-gray-600">
-          Chief Complaint: {selectedPatient.condition}
-        </p>
+      <div className="mb-3 p-2.5 bg-purple-50 border border-purple-200 rounded-lg flex justify-between items-center">
+        <div>
+          <h3 className="font-medium text-purple-800">
+            Differential Diagnosis for {selectedPatient.name}
+          </h3>
+          <p className="text-sm text-gray-600">
+            Chief Complaint: {selectedPatient.condition}
+          </p>
+        </div>
+        {selectedPatient.risk === 'critical' && (
+          <Badge className="bg-red-100 text-red-700 border-red-300 px-3">
+            <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
+            High Risk Patient
+          </Badge>
+        )}
       </div>
       
       <Table>
@@ -123,7 +131,7 @@ export function DvxAnalysisTab({ isLoading, dvxAnalysis }: DvxAnalysisTabProps) 
         </TableBody>
       </Table>
       
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mt-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
         <h4 className="font-medium text-blue-800 mb-1">Clinical Interpretation</h4>
         <p className="text-sm text-gray-700">
           Based on the confidence scores and risk levels, consider prioritizing the diagnoses with highest confidence percentages and risk levels.

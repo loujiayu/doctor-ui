@@ -170,7 +170,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   }, [patientId, selectedPatient]);
 
   return (
-    <Card className="md:col-span-2 border-gray-300 bg-white shadow-md rounded-lg overflow-hidden">
+    <Card className="md:col-span-3 border-gray-300 bg-white shadow-md rounded-lg overflow-hidden h-[calc(100vh-12rem)]">
       <CardHeader className="pb-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <div>
@@ -204,8 +204,8 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
           )}
         </div>
       </CardHeader>
-      <CardContent className="pt-6 px-5">
-        <Tabs defaultValue="analysis" className="h-[calc(100vh-15rem)]">
+      <CardContent className="pt-6 px-5 h-[calc(100%-4.5rem)]">
+        <Tabs defaultValue="analysis" className="h-full">
           <TabsList className="mb-6 h-11 bg-gray-100 p-1 border border-gray-200 shadow-sm rounded-lg">
             <TabsTrigger 
               value="analysis" 
@@ -223,11 +223,11 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="analysis" className="h-[calc(100%-3.75rem)]">
+          <TabsContent value="analysis" className="h-[calc(100%-4rem)]">
             <div className="flex flex-col h-full gap-6">
-              {/* DVX Analysis - Now above SOAP Note */}
-              <div className="flex flex-col h-1/2">
-                <div className="flex items-center gap-2 mb-3">
+              {/* DVX Analysis - Now with 55% height */}
+              <div className="flex flex-col h-[55%]">
+                <div className="flex items-center gap-2 mb-2">
                   <div className="bg-purple-100 p-1.5 rounded-md shadow-sm border border-purple-200">
                     <Brain className="h-4 w-4 text-purple-700" />
                   </div>
@@ -241,9 +241,9 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
                 </div>
               </div>
               
-              {/* SOAP Note - Now below DVX Analysis */}
-              <div className="flex flex-col h-1/2">
-                <div className="flex items-center gap-2 mb-3">
+              {/* SOAP Note - Now with 45% height */}
+              <div className="flex flex-col h-[45%]">
+                <div className="flex items-center gap-2 mb-2">
                   <div className="bg-blue-100 p-1.5 rounded-md shadow-sm border border-blue-200">
                     <FileText className="h-4 w-4 text-blue-700" />
                   </div>
@@ -256,7 +256,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="prompt" className="h-[calc(100%-3.75rem)]">
+          <TabsContent value="prompt" className="h-[calc(100%-4rem)]">
             <PromptConfigTab 
               isLoadingPrompt={isLoadingPrompt}
               isSaving={isSaving}
