@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain } from 'lucide-react';
+import { Brain, FileText, Code, AlertTriangle, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePatientStore } from '@/stores/patient-store';
-// Import the auth store to get the current user
 import { useAuthStore } from '@/stores/auth-store';
+import { Badge } from '@/components/ui/badge';
 
 import { SoapNoteTab } from './soap-note-tab';
 import { TreatmentAlgorithmTab } from './treatment-algorithm-tab';
@@ -15,9 +15,7 @@ import {
   fetchSoapNotePrompt, 
   saveSoapNotePrompt, 
   fetchDvxAnalysisPrompt,
-  saveDvxAnalysisPrompt,
-  getDefaultSoapPrompt,
-  getDefaultDvxPrompt
+  saveDvxAnalysisPrompt
 } from '@/services/prompts';
 
 interface AIAnalysisProps {
@@ -52,7 +50,6 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
         .replace(/\b\d{1,2} years old\b/g, `${selectedPatient.age} years old`)
         .replace(/\bChief Complaint: .+\b/g, `Chief Complaint: ${selectedPatient.condition}`);
       
-      personalizedNote = personalizedNote;
       setSoapNote(personalizedNote);
     } else {
       setSoapNote(note);
@@ -124,37 +121,75 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   }, [patientId, selectedPatient]);
 
   return (
-    <Card className="md:col-span-2">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5" />
-          AI Analysis {selectedPatient ? `for ${selectedPatient.name}` : ''}
-          {selectedPatient?.risk === 'critical' && (
-            <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full ml-2">
-              High Risk Patient
-            </span>
+    <Card className="md:col-span-2 border-gray-300 bg-white shadow-md rounded-lg overflow-hidden">
+      <CardHeader className="pb-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-gray-900 font-bold">
+              <div className="bg-blue-100 p-1.5 rounded-md shadow-sm border border-blue-200">
+                <Brain className="h-5 w-5 text-blue-700" />
+              </div>
+              AI Analysis
+              <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium border border-blue-200">
+                <Sparkles className="h-3 w-3 inline mr-0.5" />
+                GPT-4
+              </span>
+            </CardTitle>
+            <CardDescription className="text-gray-600 mt-1 font-medium">
+              AI-powered clinical documentation and decision support
+            </CardDescription>
+          </div>
+          
+          {selectedPatient && (
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary" className="bg-gray-100 text-gray-800 border-gray-300 shadow-sm font-medium text-sm py-1">
+                Patient: {selectedPatient.name}
+              </Badge>
+              {selectedPatient.risk === 'critical' && (
+                <Badge className="bg-red-100 text-red-700 border-red-300 shadow-sm font-medium text-sm py-1">
+                  <AlertTriangle className="h-3 w-3 mr-1 stroke-[2.5]" />
+                  High Risk Patient
+                </Badge>
+              )}
+            </div>
           )}
-        </CardTitle>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6 px-5">
         <Tabs defaultValue="soap" className="h-[calc(100vh-15rem)]">
-          <TabsList className="mb-4">
-            <TabsTrigger value="soap">SOAP Note</TabsTrigger>
-            <TabsTrigger value="raw">Raw Analysis</TabsTrigger>
-            {/* <TabsTrigger value="algorithm">Treatment Algorithm</TabsTrigger> */}
-            {/* <TabsTrigger value="insurance">Insurance Notes</TabsTrigger> */}
-            <TabsTrigger value="prompt">Prompt Config</TabsTrigger>
+          <TabsList className="mb-6 h-11 bg-gray-100 p-1 border border-gray-200 shadow-sm rounded-lg">
+            <TabsTrigger 
+              value="soap" 
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-800 data-[state=active]:shadow-sm data-[state=active]:font-medium text-gray-700 rounded-md"
+            >
+              <FileText className="h-4 w-4" />
+              SOAP Note
+            </TabsTrigger>
+            <TabsTrigger 
+              value="raw" 
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-800 data-[state=active]:shadow-sm data-[state=active]:font-medium text-gray-700 rounded-md"
+            >
+              <Code className="h-4 w-4" />
+              Raw Analysis
+            </TabsTrigger>
+            <TabsTrigger 
+              value="prompt" 
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-800 data-[state=active]:shadow-sm data-[state=active]:font-medium text-gray-700 rounded-md"
+            >
+              <Brain className="h-4 w-4" />
+              Prompt Config
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="soap" className="h-[calc(100%-3rem)]">
+          <TabsContent value="soap" className="h-[calc(100%-3.75rem)]">
             <SoapNoteTab isLoading={isLoading} soapNote={soapNote} />
           </TabsContent>
           
-          <TabsContent value="algorithm" className="h-[calc(100%-3rem)]">
+          <TabsContent value="algorithm" className="h-[calc(100%-3.75rem)]">
             <TreatmentAlgorithmTab />
           </TabsContent>
 
-          <TabsContent value="prompt" className="h-[calc(100%-3rem)]">
+          <TabsContent value="prompt" className="h-[calc(100%-3.75rem)]">
             <PromptConfigTab 
               isLoadingPrompt={isLoadingPrompt}
               isSaving={isSaving}
