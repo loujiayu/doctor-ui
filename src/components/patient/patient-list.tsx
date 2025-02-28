@@ -149,7 +149,7 @@ export function PatientList() {
                       }`}
                     >
                       <div className="flex items-center gap-4">
-                        <Avatar className={`h-12 w-12 ring-2 ${
+                        {/* <Avatar className={`h-12 w-12 ring-2 ${
                           selectedPatientId === patient.id 
                             ? 'ring-blue-500/50' 
                             : 'ring-slate-700'
@@ -158,7 +158,7 @@ export function PatientList() {
                           <AvatarFallback className="bg-slate-700 text-slate-200">
                             {patient.name.charAt(0)}
                           </AvatarFallback>
-                        </Avatar>
+                        </Avatar> */}
                         <div>
                           <h3 className="font-medium text-white">{patient.name}</h3>
                           <div className="flex flex-wrap items-center gap-3 mt-1.5">
