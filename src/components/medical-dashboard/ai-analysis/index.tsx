@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { SoapNoteTab } from './soap-note-tab';
 import { DvxAnalysisTab } from './dvx-analysis-tab';
 import { PromptConfigTab } from './prompt-config-tab';
-import { fetchSoapNote } from '@/services/soap';
+import { fetchSoapNote, SoapNoteSchema } from '@/services/soap';
 import { 
   fetchSoapNotePrompt, 
   saveSoapNotePrompt, 
@@ -23,7 +23,7 @@ interface AIAnalysisProps {
 }
 
 export function AIAnalysis({ patientId }: AIAnalysisProps) {
-  const [soapNote, setSoapNote] = useState<string | null>(null);
+  const [soapNote, setSoapNote] = useState<SoapNoteSchema | null>(null);
   const [dvxAnalysis, setDvxAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDvx, setIsLoadingDvx] = useState(true);
@@ -42,23 +42,40 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
 
   const loadSoapNote = async () => {
     setIsLoading(true);
-    // Pass the selected patient to fetch data for a specific patient
-    const note = await fetchSoapNote(selectedPatient);
-    
-    // If we have a selected patient, customize the SOAP note with patient info
-    if (selectedPatient) {
-      // This is a simplified example - in a real app, you'd have more sophisticated personalization
-      let personalizedNote = note
-        .replace(/Patient Name/g, selectedPatient.name)
-        .replace(/\b\d{1,2} years old\b/g, `${selectedPatient.age} years old`)
-        .replace(/\bChief Complaint: .+\b/g, `Chief Complaint: ${selectedPatient.condition}`);
+    try {
+      // Pass the selected patient to fetch data for a specific patient
+      const noteData = await fetchSoapNote(selectedPatient);
       
-      setSoapNote(personalizedNote);
-    } else {
-      setSoapNote(note);
+      // If we have a selected patient, customize the SOAP note with patient info
+      if (selectedPatient) {
+        // Personalize specific fields in the structured data
+        const personalizedNote: SoapNoteSchema = {
+          subjective: noteData.subjective.map(item => 
+            item.replace(/Patient Name/g, selectedPatient.name)
+               .replace(/\b\d{1,2} years old\b/g, `${selectedPatient.age} years old`)
+          ),
+          objective: noteData.objective,
+          assessment: noteData.assessment.map(item =>
+            item.replace(/Chief Complaint: .+\b/g, `Chief Complaint: ${selectedPatient.condition}`)
+          ),
+          plan: noteData.plan
+        };
+        
+        setSoapNote(personalizedNote);
+      } else {
+        setSoapNote(noteData);
+      }
+    } catch (error) {
+      console.error("Error loading SOAP note:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load SOAP note data",
+        variant: "destructive",
+      });
+      setSoapNote(null);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const loadDvxAnalysis = async () => {
@@ -170,7 +187,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   }, [patientId, selectedPatient]);
 
   return (
-    <Card className="md:col-span-3 border-gray-300 bg-white shadow-md rounded-lg overflow-hidden h-[calc(100vh-12rem)]">
+    <Card className="md:col-span-3 border-gray-300 bg-white shadow-md rounded-lg overflow-hidden h-[1200px]">
       <CardHeader className="pb-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <div>
@@ -204,7 +221,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
           )}
         </div>
       </CardHeader>
-      <CardContent className="pt-6 px-5 h-[calc(100%-4.5rem)]">
+      <CardContent className="pt-4 px-4 h-[calc(100%-4.5rem)]">
         <Tabs defaultValue="analysis" className="h-full">
           <TabsList className="mb-6 h-11 bg-gray-100 p-1 border border-gray-200 shadow-sm rounded-lg">
             <TabsTrigger 
@@ -225,8 +242,8 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
 
           <TabsContent value="analysis" className="h-[calc(100%-4rem)]">
             <div className="flex flex-col h-full gap-6">
-              {/* DVX Analysis - Now with 55% height */}
-              <div className="flex flex-col h-[55%]">
+              {/* DVX Analysis - Now with 50% height */}
+              <div className="flex flex-col h-[50%]">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="bg-purple-100 p-1.5 rounded-md shadow-sm border border-purple-200">
                     <Brain className="h-4 w-4 text-purple-700" />
@@ -241,8 +258,8 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
                 </div>
               </div>
               
-              {/* SOAP Note - Now with 45% height */}
-              <div className="flex flex-col h-[45%]">
+              {/* SOAP Note - Now with 50% height */}
+              <div className="flex flex-col h-[50%]">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="bg-blue-100 p-1.5 rounded-md shadow-sm border border-blue-200">
                     <FileText className="h-4 w-4 text-blue-700" />

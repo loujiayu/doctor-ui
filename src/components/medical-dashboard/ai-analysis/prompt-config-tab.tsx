@@ -52,20 +52,12 @@ export function PromptConfigTab({
               className="data-[state=active]:bg-white data-[state=active]:text-blue-800 data-[state=active]:shadow-sm data-[state=active]:font-medium text-gray-700 rounded-md relative"
             >
               SOAP Note Prompt
-              <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 border-blue-200 absolute -top-2.5 -right-2.5 shadow-sm">
-                <Code className="h-3 w-3 mr-1" />
-                System
-              </Badge>
             </TabsTrigger>
             <TabsTrigger 
               value="dvx" 
               className="data-[state=active]:bg-white data-[state=active]:text-purple-800 data-[state=active]:shadow-sm data-[state=active]:font-medium text-gray-700 rounded-md relative"
             >
               AI DVX Analysis Prompt
-              <Badge variant="outline" className="ml-2 bg-purple-50 text-purple-700 border-purple-200 absolute -top-2.5 -right-2.5 shadow-sm">
-                <Wand2 className="h-3 w-3 mr-1" />
-                Advanced
-              </Badge>
             </TabsTrigger>
           </TabsList>
           <Button
@@ -108,38 +100,6 @@ export function PromptConfigTab({
                   />
                 </div>
                 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-gray-700 shadow-sm">
-                  <h4 className="font-medium text-blue-800 mb-1.5 flex items-center">
-                    <Code className="h-4 w-4 mr-1.5 inline" />
-                    Available Variables
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div>
-                      <code className="text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200">
-                        [PATIENT_NAME]
-                      </code>
-                      <span className="text-gray-600 ml-2">Patient's full name</span>
-                    </div>
-                    <div>
-                      <code className="text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200">
-                        [PATIENT_AGE]
-                      </code>
-                      <span className="text-gray-600 ml-2">Patient's age</span>
-                    </div>
-                    <div>
-                      <code className="text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200">
-                        [CHIEF_COMPLAINT]
-                      </code>
-                      <span className="text-gray-600 ml-2">Primary complaint</span>
-                    </div>
-                    <div>
-                      <code className="text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200">
-                        [VITALS]
-                      </code>
-                      <span className="text-gray-600 ml-2">Patient's vital signs</span>
-                    </div>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -168,39 +128,6 @@ export function PromptConfigTab({
                     className="h-[calc(100vh-36rem)] sm:h-[calc(100vh-30rem)] font-mono text-sm resize-none bg-white border-gray-300 text-gray-800 focus-visible:ring-purple-500/30 shadow-sm"
                     placeholder="Enter your AI DVX analysis prompt configuration here..."
                   />
-                </div>
-                
-                <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-3 text-sm text-gray-700 shadow-sm">
-                  <h4 className="font-medium text-purple-800 mb-1.5 flex items-center">
-                    <Code className="h-4 w-4 mr-1.5 inline" />
-                    Available Variables
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div>
-                      <code className="text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded border border-purple-200">
-                        [PATIENT_NAME]
-                      </code>
-                      <span className="text-gray-600 ml-2">Patient's full name</span>
-                    </div>
-                    <div>
-                      <code className="text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded border border-purple-200">
-                        [CONDITION]
-                      </code>
-                      <span className="text-gray-600 ml-2">Medical condition</span>
-                    </div>
-                    <div>
-                      <code className="text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded border border-purple-200">
-                        [DEVICE_DATA]
-                      </code>
-                      <span className="text-gray-600 ml-2">Connected device info</span>
-                    </div>
-                    <div>
-                      <code className="text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded border border-purple-200">
-                        [TEST_RESULTS]
-                      </code>
-                      <span className="text-gray-600 ml-2">Clinical test results</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </CardContent>

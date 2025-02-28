@@ -47,8 +47,8 @@ export function MedicalDashboard({ patientId, onBack }: MedicalDashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-[1300px] mx-auto space-y-4">
+    <div className="min-h-screen bg-background p-3">
+      <div className="max-w-[1300px] mx-auto space-y-3">
         <div className="flex items-center justify-between">
           <Button 
             variant="ghost" 
@@ -66,7 +66,7 @@ export function MedicalDashboard({ patientId, onBack }: MedicalDashboardProps) {
         
         {/* <ReviewActions /> */}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <AIAnalysis patientId={patientId} />
 
           {/* <div className="space-y-6">
