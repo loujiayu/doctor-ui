@@ -10,7 +10,7 @@ export interface SoapNoteSchema {
 }
 
 interface SoapNoteApiResponse {
-  content: SoapNoteSchema;
+  content: string;
 }
 
 /**
@@ -25,7 +25,7 @@ export async function fetchSoapNote(patient?: any): Promise<SoapNoteSchema> {
       throw new Error(response.error || 'Failed to fetch SOAP note');
     }
     
-    return response.data.content;
+    return JSON.parse(response.data.content);
   } catch (error) {
     console.error('Error fetching SOAP note:', error);
     // Return fallback data that matches the schema

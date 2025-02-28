@@ -54,18 +54,6 @@ export function SoapNoteTab({ isLoading, soapNote }: SoapNoteTabProps) {
   
   return (
     <div className="h-full flex flex-col">
-      <div className="flex justify-end p-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="text-xs bg-white" 
-          onClick={handleCopy}
-        >
-          <Copy className="h-3.5 w-3.5 mr-1.5" />
-          Copy Note
-        </Button>
-      </div>
-      
       <div className="overflow-auto flex-1 px-1">
         <div className="grid grid-cols-1 gap-4 pb-4">
           {/* Subjective Section */}

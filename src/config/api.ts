@@ -1,6 +1,6 @@
 // Configuration for API endpoints
 
-const isDevelopment = false;
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Use localhost for development, production URL otherwise
 export const API_BASE_URL = isDevelopment 
