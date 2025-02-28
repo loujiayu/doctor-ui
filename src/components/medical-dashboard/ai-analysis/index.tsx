@@ -8,7 +8,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { Badge } from '@/components/ui/badge';
 
 import { SoapNoteTab } from './soap-note-tab';
-import { TreatmentAlgorithmTab } from './treatment-algorithm-tab';
+import { DvxAnalysisTab } from './dvx-analysis-tab';
 import { PromptConfigTab } from './prompt-config-tab';
 import { fetchSoapNote } from '@/services/soap';
 import { 
@@ -24,11 +24,14 @@ interface AIAnalysisProps {
 
 export function AIAnalysis({ patientId }: AIAnalysisProps) {
   const [soapNote, setSoapNote] = useState<string | null>(null);
+  const [dvxAnalysis, setDvxAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingDvx, setIsLoadingDvx] = useState(true);
   const [soapPromptText, setSoapPromptText] = useState('');
   const [dvxPromptText, setDvxPromptText] = useState('');
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  
   const { toast } = useToast();
   
   // Get selected patient from store
@@ -56,6 +59,51 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
     }
     
     setIsLoading(false);
+  };
+
+  const loadDvxAnalysis = async () => {
+    setIsLoadingDvx(true);
+    try {
+      // Simulate API call for DVX analysis
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      
+      // For the table-based DVX analysis, we'll return structured data rather than markdown
+      if (selectedPatient) {
+        // Generate sample differential diagnoses based on condition
+        let differentials = [];
+        
+        if (selectedPatient.condition.includes("chest")) {
+          differentials = [
+            { condition: "Acute Coronary Syndrome", risk: "High", confidence: 78, steps: "Immediate ECG, cardiac enzymes, consider aspirin" },
+            { condition: "Pulmonary Embolism", risk: "High", confidence: 65, steps: "D-dimer, chest CT if indicated" },
+            { condition: "Musculoskeletal Pain", risk: "Low", confidence: 45, steps: "Physical examination, NSAIDs if appropriate" },
+            { condition: "Anxiety-induced Chest Pain", risk: "Low", confidence: 35, steps: "Assess psychological factors, consider anxiety management" }
+          ];
+        } else if (selectedPatient.condition.includes("head")) {
+          differentials = [
+            { condition: "Tension Headache", risk: "Low", confidence: 72, steps: "Analgesics, stress management education" },
+            { condition: "Migraine", risk: "Medium", confidence: 68, steps: "Triptans if confirmed, preventive therapy if recurrent" },
+            { condition: "Sinusitis", risk: "Low", confidence: 41, steps: "Nasal decongestants, consider antibiotics if bacterial" },
+            { condition: "Intracranial Hypertension", risk: "High", confidence: 22, steps: "Neurological exam, consider imaging if concerning features" }
+          ];
+        } else {
+          differentials = [
+            { condition: "Primary diagnosis", risk: selectedPatient.risk === 'critical' ? "High" : "Medium", confidence: 82, steps: "Targeted treatment based on confirmation" },
+            { condition: "Secondary diagnosis", risk: "Medium", confidence: 65, steps: "Additional testing to confirm" },
+            { condition: "Tertiary diagnosis", risk: "Low", confidence: 43, steps: "Monitor for evolving symptoms" }
+          ];
+        }
+        
+        setDvxAnalysis(JSON.stringify(differentials));
+      } else {
+        setDvxAnalysis(null);
+      }
+    } catch (error) {
+      console.error("Error loading DVX analysis:", error);
+      setDvxAnalysis(null);
+    } finally {
+      setIsLoadingDvx(false);
+    }
   };
 
   const loadPrompts = async () => {
@@ -117,6 +165,7 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   // Re-fetch data when patientId changes
   useEffect(() => {
     loadSoapNote();
+    loadDvxAnalysis();
     loadPrompts();
   }, [patientId, selectedPatient]);
 
@@ -156,37 +205,55 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
         </div>
       </CardHeader>
       <CardContent className="pt-6 px-5">
-        <Tabs defaultValue="soap" className="h-[calc(100vh-15rem)]">
+        <Tabs defaultValue="analysis" className="h-[calc(100vh-15rem)]">
           <TabsList className="mb-6 h-11 bg-gray-100 p-1 border border-gray-200 shadow-sm rounded-lg">
             <TabsTrigger 
-              value="soap" 
+              value="analysis" 
               className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-800 data-[state=active]:shadow-sm data-[state=active]:font-medium text-gray-700 rounded-md"
             >
-              <FileText className="h-4 w-4" />
-              SOAP Note
-            </TabsTrigger>
-            <TabsTrigger 
-              value="raw" 
-              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-800 data-[state=active]:shadow-sm data-[state=active]:font-medium text-gray-700 rounded-md"
-            >
-              <Code className="h-4 w-4" />
-              Raw Analysis
+              <Brain className="h-4 w-4" />
+              Clinical Analysis
             </TabsTrigger>
             <TabsTrigger 
               value="prompt" 
               className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-800 data-[state=active]:shadow-sm data-[state=active]:font-medium text-gray-700 rounded-md"
             >
-              <Brain className="h-4 w-4" />
+              <Code className="h-4 w-4" />
               Prompt Config
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="soap" className="h-[calc(100%-3.75rem)]">
-            <SoapNoteTab isLoading={isLoading} soapNote={soapNote} />
-          </TabsContent>
-          
-          <TabsContent value="algorithm" className="h-[calc(100%-3.75rem)]">
-            <TreatmentAlgorithmTab />
+          <TabsContent value="analysis" className="h-[calc(100%-3.75rem)]">
+            <div className="flex flex-col h-full gap-6">
+              {/* DVX Analysis - Now above SOAP Note */}
+              <div className="flex flex-col h-1/2">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="bg-purple-100 p-1.5 rounded-md shadow-sm border border-purple-200">
+                    <Brain className="h-4 w-4 text-purple-700" />
+                  </div>
+                  <h3 className="font-bold text-gray-800">DVX Analysis</h3>
+                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium border border-purple-200">
+                    Differential Diagnosis AI
+                  </span>
+                </div>
+                <div className="flex-grow min-h-0 border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                  <DvxAnalysisTab isLoading={isLoadingDvx} dvxAnalysis={dvxAnalysis} />
+                </div>
+              </div>
+              
+              {/* SOAP Note - Now below DVX Analysis */}
+              <div className="flex flex-col h-1/2">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="bg-blue-100 p-1.5 rounded-md shadow-sm border border-blue-200">
+                    <FileText className="h-4 w-4 text-blue-700" />
+                  </div>
+                  <h3 className="font-bold text-gray-800">SOAP Note</h3>
+                </div>
+                <div className="flex-grow min-h-0 border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                  <SoapNoteTab isLoading={isLoading} soapNote={soapNote} />
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="prompt" className="h-[calc(100%-3.75rem)]">

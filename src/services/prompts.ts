@@ -10,7 +10,7 @@ interface PromptSaveRequest {
 }
 
 // Default DVX prompt for fallbacks
-const DEFAULT_DVX_PROMPT = `You are an advanced AI medical analysis system called DVX (Diagnostic Visual eXpert). Analyze the following patient data and provide comprehensive clinical insights:
+const DEFAULT_DVX_PROMPT = `You are an advanced AI medical analysis system called DVX (Differential Diagnosis AI). Analyze the following patient data and provide comprehensive clinical insights:
 
 Patient: [PATIENT_NAME]
 Age: [PATIENT_AGE]

@@ -154,7 +154,7 @@ export function PromptConfigTab({
                     <Wand2 className="h-4 w-4 text-purple-700" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-gray-800">DVX Analysis Engine Configuration</h3>
+                    <h3 className="text-sm font-bold text-gray-800">DVX (Differential Diagnosis AI) Configuration</h3>
                     <p className="text-sm text-gray-600">
                       Customize the AI prompt used to generate advanced diagnostic insights for patient care.
                     </p>
