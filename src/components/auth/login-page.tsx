@@ -41,10 +41,10 @@ export function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-background p-6">
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-6">
-          <div className="mx-auto w-16 h-16 bg-white rounded-full p-3 shadow-lg mb-4">
+          <div className="mx-auto w-24 h-24 bg-white rounded-full p-4 shadow-lg mb-4">
             <img 
-              src="https://raw.githubusercontent.com/stackblitz/stackblitz-icons/main/files/vicki-ai-logo.png" 
-              alt="Vicki.AI"
+              src="/doctor-logo.webp" 
+              alt="Doctor UI"
               className="w-full h-full object-contain"
             />
           </div>

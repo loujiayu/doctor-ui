@@ -37,10 +37,10 @@ export function PatientListHeader() {
   return (
     <div className="flex items-center justify-between w-full mb-6">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-white p-2 shadow-lg">
+        <div className="w-16 h-16 rounded-full bg-white p-2.5 shadow-lg">
           <img 
-            src="https://raw.githubusercontent.com/stackblitz/stackblitz-icons/main/files/vicki-ai-logo.png" 
-            alt="Vicki.AI"
+            src="/doctor-logo.webp" 
+            alt="Doctor UI"
             className="w-full h-full object-contain"
           />
         </div>
