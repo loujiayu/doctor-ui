@@ -54,7 +54,7 @@ export function DvxAnalysisTab({ isLoading, dvxAnalysis }: DvxAnalysisTabProps) 
           </p>
         </div>
         {selectedPatient.risk === 'critical' && (
-          <Badge className="bg-red-100 text-red-700 border-red-300 px-3">
+          <Badge className="bg-red-100 text-red-700 border-red-300 px-3 ">
             <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
             High Risk Patient
           </Badge>
