@@ -6,7 +6,7 @@ export const patientService = {
   async getPatients(): Promise<ApiPatient[]> {
     try {
       // In a real app, this would fetch from your actual API endpoint
-      const response = await get<ApiPatient[]>(`${API_BASE_URL}/patients`);
+      const response = await get<ApiPatient[]>(`${API_BASE_URL}/patients/list`);
 
       if (!response.success) {
         throw new Error(`Failed to fetch patients`);
