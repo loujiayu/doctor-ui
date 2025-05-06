@@ -19,7 +19,7 @@ interface SoapNoteApiResponse {
 export async function fetchSoapNote(patient?: any): Promise<SoapNoteSchema> {
   try {
     const patientId = patient?.id || '1';
-    const response = await post<SoapNoteApiResponse>(`${API_BASE_URL}/patients/${patientId}/soap`, patient || {});
+    const response = await post<SoapNoteApiResponse>(`${API_BASE_URL}/ai/${patientId}/soap`, patient || {});
     
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Failed to fetch SOAP note');

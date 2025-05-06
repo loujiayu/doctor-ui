@@ -20,7 +20,7 @@ export interface DifferentialDiagnosis {
  */
 export async function fetchDvxAnalysis(patientId: string): Promise<DifferentialDiagnosis[]> {
   try {
-    const response = await post<DvxAnalysisApiResponse>(`${API_BASE_URL}/patients/${patientId}/dvx`);
+    const response = await post<DvxAnalysisApiResponse>(`${API_BASE_URL}/ai/${patientId}/dvx`);
     
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Failed to fetch DVX analysis');
