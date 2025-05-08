@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { SoapNoteTab } from './soap-note-tab';
 import { DvxAnalysisTab } from './dvx-analysis-tab';
 import { PromptConfigTab } from './prompt-config-tab';
+import { PatientNoteSection } from './patient-note-section';
 import { fetchSoapNote, SoapNoteSchema } from '@/services/soap';
 import { 
   fetchSoapNotePrompt, 
@@ -18,6 +19,7 @@ import {
   saveDvxAnalysisPrompt
 } from '@/services/prompts';
 import { fetchDvxAnalysis, DifferentialDiagnosis } from '@/services/dvx-service';
+import { getDoctorPatientNote, saveDoctorPatientNote } from '@/services/doctor-patient-association';
 
 interface AIAnalysisProps {
   patientId?: string;
@@ -32,6 +34,9 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
   const [dvxPromptText, setDvxPromptText] = useState('');
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [patientNote, setPatientNote] = useState('');
+  const [isLoadingNote, setIsLoadingNote] = useState(false);
+  const [isSavingNote, setIsSavingNote] = useState(false);
   
   const { toast } = useToast();
   
@@ -127,6 +132,25 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
     }
   };
 
+  const loadPatientNote = async () => {
+    if (!selectedPatient || !user) return;
+    
+    setIsLoadingNote(true);
+    try {
+      const note = await getDoctorPatientNote(userId, parseInt(selectedPatient.id));
+      setPatientNote(note || '');
+    } catch (error) {
+      console.error('Error loading patient note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load patient note",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingNote(false);
+    }
+  };
+
   const handleSavePrompt = async (type: 'soap' | 'dvx') => {
     setIsSaving(true);
     try {
@@ -159,11 +183,41 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
     }
   };
 
+  const handleSavePatientNote = async () => {
+    if (!selectedPatient || !user) return;
+    
+    setIsSavingNote(true);
+    try {
+      await saveDoctorPatientNote({
+        doctorId: userId,
+        patientId: parseInt(selectedPatient.id),
+        metadata: {
+          note: patientNote
+        }
+      });
+      
+      toast({
+        title: "Success",
+        description: "Patient note saved successfully",
+      });
+    } catch (error) {
+      console.error('Error saving patient note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save patient note",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
   // Re-fetch data when patientId changes
   useEffect(() => {
     loadSoapNote();
     loadDvxAnalysis();
     loadPrompts();
+    loadPatientNote();
   }, [patientId, selectedPatient]);
 
   return (
@@ -198,6 +252,13 @@ export function AIAnalysis({ patientId }: AIAnalysisProps) {
         </div>
       </CardHeader>
       <CardContent className="pt-4 px-4 h-[calc(100%-4.5rem)]">
+        <PatientNoteSection
+          note={patientNote}
+          onChange={setPatientNote}
+          onSave={handleSavePatientNote}
+          isLoading={isLoadingNote}
+          isSaving={isSavingNote}
+        />
         <Tabs defaultValue="analysis" className="h-full">
           <TabsList className="mb-6 h-11 bg-gray-100 p-1 border border-gray-200 shadow-sm rounded-lg">
             <TabsTrigger 
